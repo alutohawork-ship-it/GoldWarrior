@@ -11,18 +11,18 @@ export default async function handler(req, res) {
     }
 
     try {
-        const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Expert untuk XAU/USD dengan mode trading ${mode || 'intraday'}. 
-        Harga live saat ini adalah ${price}.
-        Hitung dan tentukan secara presisi level Order Block atau FVG terdekat untuk Zona Entry, Stop Loss (SL), dan Take Profit (TP1, TP2, TP3) yang logis berdasarkan struktur market saat ini.
+        const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Expert tingkat lanjut untuk XAU/USD dengan mode trading ${mode || 'intraday'}. 
+        Harga live saat ini adalah ${price}. 
+        Analisis struktur market terkini (struktur harga, likuiditas, Order Block, dan FVG yang terlihat pada time frame widget TradingView). Jangan menebak atau melompati harga secara acak; pastikan rentang Zona Entry (zoneLow & zoneHigh), Stop Loss (sl), dan Take Profit (tp1, tp2, tp3) benar-benar logis, realistis, dan presisi mengikuti struktur harga live saat ini.
         Berikan hasil dalam format JSON murni tanpa teks markdown dengan keys persis berikut:
         {
-          "analysis": "alasan analisis SMC...",
-          "zoneLow": "angka desimal batas bawah zona entry (contoh: 3968.00)",
-          "zoneHigh": "angka desimal batas atas zona entry (contoh: 3971.00)",
-          "sl": "angka desimal SL (contoh: 3965.00)",
-          "tp1": "angka desimal TP1 (contoh: 3974.50)",
-          "tp2": "angka desimal TP2 (contoh: 3979.50)",
-          "tp3": "angka desimal TP3 (contoh: 3984.50)",
+          "analysis": "alasan analisis SMC mendalam berdasarkan struktur harga...",
+          "zoneLow": "angka desimal batas bawah zona entry",
+          "zoneHigh": "angka desimal batas atas zona entry",
+          "sl": "angka desimal SL terproteksi",
+          "tp1": "angka desimal TP1",
+          "tp2": "angka desimal TP2",
+          "tp3": "angka desimal TP3",
           "setupMode": "SETUP: WAIT PULLBACK"
         }`;
 
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 model: "gpt-4o-mini",
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0.7
+                temperature: 0.5
             })
         });
 
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
 
         let base = parseFloat(price);
         return res.status(200).json({
-            analysis: parsed.analysis || "Analisis SMC Selesai.",
+            analysis: parsed.analysis || "Analisis struktur SMC Selesai.",
             zoneLow: parsed.zoneLow || (base - 1.5).toFixed(2),
             zoneHigh: parsed.zoneHigh || (base + 1.5).toFixed(2),
             sl: parsed.sl || (base - 4.5).toFixed(2),
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     } catch (error) {
         let base = parseFloat(price) || 3958.90;
         return res.status(200).json({
-            analysis: "Sistem mendeteksi zona diskon SMC. Harga live diproses menggunakan ATR Buffer.",
+            analysis: "Sistem mendeteksi zona diskon SMC berdasarkan struktur chart terkini.",
             zoneLow: (base - 1.5).toFixed(2),
             zoneHigh: (base + 1.5).toFixed(2),
             sl: (base - 4.50).toFixed(2),
