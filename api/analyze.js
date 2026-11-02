@@ -13,16 +13,16 @@ export default async function handler(req, res) {
     try {
         const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Expert untuk XAU/USD dengan mode trading ${mode || 'intraday'}. 
         Harga live saat ini adalah ${price}.
-        Tentukan Zona Order Block / FVG terdekat yang valid untuk entry.
-        Berikan analisis teknikal dalam format JSON murni tanpa teks markdown dengan keys persis berikut:
+        Hitung dan tentukan secara presisi level Order Block atau FVG terdekat untuk Zona Entry, Stop Loss (SL), dan Take Profit (TP1, TP2, TP3) yang logis berdasarkan struktur market saat ini.
+        Berikan hasil dalam format JSON murni tanpa teks markdown dengan keys persis berikut:
         {
           "analysis": "alasan analisis SMC...",
-          "zoneLow": "harga batas bawah zona entry (contoh: 3968.00)",
-          "zoneHigh": "harga batas atas zona entry (contoh: 3971.00)",
-          "sl": "angka SL dengan format desimal (contoh: 3965.00)",
-          "tp1": "angka TP1 (contoh: 3974.50)",
-          "tp2": "angka TP2 (contoh: 3979.50)",
-          "tp3": "angka TP3 (contoh: 3984.50)",
+          "zoneLow": "angka desimal batas bawah zona entry (contoh: 3968.00)",
+          "zoneHigh": "angka desimal batas atas zona entry (contoh: 3971.00)",
+          "sl": "angka desimal SL (contoh: 3965.00)",
+          "tp1": "angka desimal TP1 (contoh: 3974.50)",
+          "tp2": "angka desimal TP2 (contoh: 3979.50)",
+          "tp3": "angka desimal TP3 (contoh: 3984.50)",
           "setupMode": "SETUP: WAIT PULLBACK"
         }`;
 
