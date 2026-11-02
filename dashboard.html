@@ -146,7 +146,6 @@
             });
             
             fetchGoldPrice();
-            // Auto sync harga setiap 15 detik agar tetap akurat
             setInterval(fetchGoldPrice, 15000);
         };
 
@@ -173,7 +172,7 @@
             let mode = document.getElementById('trading-mode').value;
             if(!price) { alert("Masukkan atau sinkronkan harga terlebih dahulu!"); return; }
 
-            document.getElementById('reason-content').innerHTML = `🤖 Menganalisis pasar XAU/USD untuk mode <b>${mode.toUpperCase()}</b> via OpenAI SMC...`;
+            document.getElementById('reason-content').innerHTML = `🤖 Menganalisis struktur SMC untuk mode <b>${mode.toUpperCase()}</b> via OpenAI...`;
 
             try {
                 let response = await fetch('/api/analyze', {
@@ -197,13 +196,15 @@
                 let actionColorClass = isBuy ? "text-emerald-400" : "text-rose-400";
                 let zoneBoxClass = isBuy ? "zone-box-buy border-emerald-500" : "zone-box-sell border-rose-500";
 
-                let spreadRange = mode === 'scalping' ? 1.5 : (mode === 'intraday' ? 3.0 : 6.0);
-                let zoneLow = (base - spreadRange).toFixed(2);
-                let zoneHigh = (base + spreadRange).toFixed(2);
+                // Menggunakan zoneLow & zoneHigh murni hasil kalkulasi OpenAI
+                let zoneLow = parseFloat(result.zoneLow).toFixed(2);
+                let zoneHigh = parseFloat(result.zoneHigh).toFixed(2);
+
+                let statusInZone = (base >= zoneLow && base <= zoneHigh) ? "di dalam zona" : "menunggu pullback ke zona";
 
                 document.getElementById('zone-range').innerText = `${zoneLow} - ${zoneHigh}`;
                 document.getElementById('zone-title').innerHTML = `<span class="${actionColorClass}">${actionText} (${mode.toUpperCase()})</span>`;
-                document.getElementById('zone-status-text').innerText = `LIVE ${base} di dalam zona`;
+                document.getElementById('zone-status-text').innerText = `LIVE ${base} ${statusInZone}`;
 
                 document.getElementById('map-sl-val').innerText = result.sl;
                 document.getElementById('map-live-price').innerText = base.toFixed(2);
@@ -217,26 +218,24 @@
 
             } catch (err) {
                 let base = parseFloat(price);
-                let offset = mode === 'scalping' ? 2.5 : (mode === 'intraday' ? 5.0 : 12.0);
-                let tpMultiplier = mode === 'scalping' ? 1.5 : (mode === 'intraday' ? 3.0 : 7.0);
-
-                document.getElementById('reason-content').innerHTML = `⚠️ <b>Mode Fallback Aktif (${mode.toUpperCase()}):</b> Struktur harga live dianalisis berdasarkan mitigasi Order Block & FVG lokal.`;
-                document.getElementById('val-sl').innerText = (base - offset).toFixed(2);
-                document.getElementById('val-tp1').innerText = (base + (offset * 1.2)).toFixed(2);
-                document.getElementById('val-tp2').innerText = (base + (offset * 2.2)).toFixed(2);
-                document.getElementById('val-tp3').innerText = (base + (offset * 3.5)).toFixed(2);
-                document.getElementById('setup-mode-badge').innerText = "SETUP: " + mode.toUpperCase();
-
                 let zoneLow = (base - 1.5).toFixed(2);
                 let zoneHigh = (base + 1.5).toFixed(2);
+
+                document.getElementById('reason-content').innerHTML = `⚠️ <b>Mode Fallback Aktif:</b> Harga Live $${base} menggunakan rentang ATR standar.`;
+                document.getElementById('val-sl').innerText = (base - 4.5).toFixed(2);
+                document.getElementById('val-tp1').innerText = (base + 5.0).toFixed(2);
+                document.getElementById('val-tp2').innerText = (base + 10.0).toFixed(2);
+                document.getElementById('val-tp3').innerText = (base + 15.0).toFixed(2);
+                document.getElementById('setup-mode-badge').innerText = "SETUP: DIRECT";
+
                 document.getElementById('zone-range').innerText = `${zoneLow} - ${zoneHigh}`;
-                document.getElementById('zone-title').innerHTML = `<span class="text-emerald-400">ZONA BELI (${mode.toUpperCase()})</span>`;
+                document.getElementById('zone-title').innerHTML = `<span class="text-emerald-400">ZONA BELI</span>`;
                 document.getElementById('zone-status-text').innerText = `LIVE ${base} di dalam zona`;
-                document.getElementById('map-sl-val').innerText = (base - offset).toFixed(2);
+                document.getElementById('map-sl-val').innerText = (base - 4.5).toFixed(2);
                 document.getElementById('map-live-price').innerText = base.toFixed(2);
-                document.getElementById('map-tp1').innerText = (base + (offset * 1.2)).toFixed(2);
-                document.getElementById('map-tp2').innerText = (base + (offset * 2.2)).toFixed(2);
-                document.getElementById('map-tp3').innerText = (base + (offset * 3.5)).toFixed(2);
+                document.getElementById('map-tp1').innerText = (base + 5.0).toFixed(2);
+                document.getElementById('map-tp2').innerText = (base + 10.0).toFixed(2);
+                document.getElementById('map-tp3').innerText = (base + 15.0).toFixed(2);
                 
                 let entryBox = document.getElementById('map-entry-box');
                 entryBox.className = `border rounded p-1.5 text-center my-1 zone-box-buy border-emerald-500`;
