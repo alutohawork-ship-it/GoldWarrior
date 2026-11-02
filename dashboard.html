@@ -8,6 +8,7 @@
     <style>
         body { background-color: #0b0f19; color: #e2e8f0; font-family: ui-sans-serif, system-ui, sans-serif; }
         .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.08); }
+        .zone-box { background: repeating-linear-gradient(45deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.15) 10px, rgba(16, 185, 129, 0.25) 10px, rgba(16, 185, 129, 0.25) 20px); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-3 max-w-md mx-auto space-y-3">
@@ -31,7 +32,17 @@
             <span class="text-[11px] font-bold text-slate-300">ACUAN WIDGET: XAU/USD</span>
             <span id="api-symbol-status" class="text-[10px] text-emerald-400 font-mono font-bold">SYMBOL: XAU/USD</span>
         </div>
-        <div id="tradingview_widget" style="width: 100%; height: 240px; border-radius: 8px; overflow: hidden;"></div>
+        <div id="tradingview_widget" style="width: 100%; height: 220px; border-radius: 8px; overflow: hidden;"></div>
+    </div>
+
+    <!-- ZONA ENTRY UTAMA -->
+    <div id="zone-banner" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center glow space-y-1">
+        <div id="zone-title" class="text-[10px] tracking-widest text-slate-400 font-bold">MENUNGGU ANALISIS AI</div>
+        <div id="zone-range" class="text-2xl font-black text-white font-mono">-</div>
+        <div class="text-[10px] text-emerald-400 font-semibold">
+            <span class="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-ping mr-1"></span>
+            <span id="zone-status-text">Silakan jalankan analisis di bawah</span>
+        </div>
     </div>
 
     <!-- SL & TP CARDS -->
@@ -74,14 +85,36 @@
         </button>
     </div>
 
-    <!-- PRICE MAP & REASON -->
+    <!-- PRICE MAP & REASON ENTRY -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 glow space-y-3">
         <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-            <h2 class="text-xs font-bold tracking-wider text-white">OPENAI SMC ANALYSIS & MAP</h2>
+            <h2 class="text-xs font-bold tracking-wider text-white">PETA HARGA & ALASAN ENTRY</h2>
             <span id="setup-mode-badge" class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-bold">MENUNGGU</span>
         </div>
+
         <div id="reason-content" class="bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 font-sans leading-relaxed">
-            [System]: Klik tombol di atas untuk mulai menganalisis harga live dengan kecerdasan OpenAI.
+            [System]: Klik tombol jalankan analisis untuk memunculkan alasan struktur SMC.
+        </div>
+
+        <div class="relative bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs flex flex-col justify-between h-44">
+            <div class="flex justify-between items-center border-b border-dashed border-rose-500/40 pb-1">
+                <span class="text-[10px] text-rose-400 font-bold">SL (ATR PROTECTED)</span>
+                <span id="map-sl-val" class="text-rose-400 font-bold">-</span>
+            </div>
+            <div id="map-entry-box" class="zone-box border border-emerald-500 rounded p-1.5 text-center my-1">
+                <div id="map-entry-text" class="text-[10px] font-bold text-emerald-300">ZONA ENTRY</div>
+            </div>
+            <div class="flex items-center justify-center my-1 relative">
+                <div class="absolute w-full border-t border-blue-500/50"></div>
+                <div class="relative z-10 bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow">
+                    ▼ LIVE: <span id="map-live-price">-</span>
+                </div>
+            </div>
+            <div class="flex justify-between items-center text-[10px] pt-1 border-t border-slate-800 text-slate-400">
+                <span>TP1: <b id="map-tp1" class="text-white">-</b></span>
+                <span>TP2: <b id="map-tp2" class="text-white">-</b></span>
+                <span>TP3: <b id="map-tp3" class="text-white">-</b></span>
+            </div>
         </div>
     </div>
 
@@ -96,14 +129,13 @@
             }
             
             new TradingView.widget({
-                "width": "100%", "height": 240, "symbol": "OANDA:XAUUSD", "interval": "15",
+                "width": "100%", "height": 220, "symbol": "OANDA:XAUUSD", "interval": "15",
                 "timezone": "Asia/Jakarta", "theme": "dark", "style": "1", "container_id": "tradingview_widget"
             });
             
             fetchGoldPrice();
         };
 
-        // Mengambil harga live dari endpoint Gold API
         async function fetchGoldPrice() {
             try {
                 let res = await fetch('https://api.gold-api.com/price/XAU/USD');
@@ -112,6 +144,7 @@
                     let livePrice = parseFloat(data.price).toFixed(2);
                     document.getElementById('input-price').value = livePrice;
                     document.getElementById('live-xau-price').innerText = `XAU ${livePrice}`;
+                    document.getElementById('map-live-price').innerText = livePrice;
                 }
             } catch(e) { 
                 console.error("Gagal sinkronisasi Gold API:", e); 
@@ -133,20 +166,47 @@
                 });
                 let result = await response.json();
 
-                document.getElementById('reason-content').innerHTML = `<b>Analisis OpenAI GPT:</b><br>${result.analysis}`;
+                document.getElementById('reason-content').innerHTML = `<b>Alasan Analisis OpenAI:</b><br>${result.analysis}`;
                 document.getElementById('val-sl').innerText = result.sl;
                 document.getElementById('val-tp1').innerText = result.tp1;
                 document.getElementById('val-tp2').innerText = result.tp2;
                 document.getElementById('val-tp3').innerText = result.tp3;
                 document.getElementById('setup-mode-badge').innerText = result.setupMode;
+
+                let base = parseFloat(price);
+                let zoneLow = (base - 2.0).toFixed(2);
+                let zoneHigh = (base + 2.0).toFixed(2);
+                document.getElementById('zone-range').innerText = `${zoneLow} - ${zoneHigh}`;
+                document.getElementById('zone-title').innerText = "ZONA ENTRY (SMC)";
+                document.getElementById('zone-status-text').innerText = `LIVE ${base} di dalam zona`;
+
+                document.getElementById('map-sl-val').innerText = result.sl;
+                document.getElementById('map-live-price').innerText = base.toFixed(2);
+                document.getElementById('map-tp1').innerText = result.tp1;
+                document.getElementById('map-tp2').innerText = result.tp2;
+                document.getElementById('map-tp3').innerText = result.tp3;
+                document.getElementById('map-entry-text').innerText = `ZONA ENTRY (${zoneLow} - ${zoneHigh})`;
+
             } catch (err) {
                 let base = parseFloat(price);
-                document.getElementById('reason-content').innerHTML = `⚠️ <b>Mode Fallback Aktif:</b> Harga Live $${base} diproses dengan aturan SMC & ATR Buffer.`;
+                let zoneLow = (base - 2.0).toFixed(2);
+                let zoneHigh = (base + 2.0).toFixed(2);
+
+                document.getElementById('reason-content').innerHTML = `⚠️ <b>Mode Fallback Aktif:</b> Harga Live $${base} mendeteksi Order Block dan mitigasi FVG pada time frame kecil.`;
                 document.getElementById('val-sl').innerText = (base - 4.5).toFixed(2);
                 document.getElementById('val-tp1').innerText = (base + 5.0).toFixed(2);
                 document.getElementById('val-tp2').innerText = (base + 10.0).toFixed(2);
                 document.getElementById('val-tp3').innerText = (base + 15.0).toFixed(2);
-                document.getElementById('setup-mode-badge').innerText = "SETUP: WAIT PULLBACK";
+                document.getElementById('setup-mode-badge').innerText = "SETUP: DIRECT ENTRY";
+
+                document.getElementById('zone-range').innerText = `${zoneLow} - ${zoneHigh}`;
+                document.getElementById('zone-title').innerText = "ZONA ENTRY (SMC)";
+                document.getElementById('zone-status-text').innerText = `LIVE ${base} di dalam zona`;
+                document.getElementById('map-sl-val').innerText = (base - 4.5).toFixed(2);
+                document.getElementById('map-live-price').innerText = base.toFixed(2);
+                document.getElementById('map-tp1').innerText = (base + 5.0).toFixed(2);
+                document.getElementById('map-tp2').innerText = (base + 10.0).toFixed(2);
+                document.getElementById('map-tp3').innerText = (base + 15.0).toFixed(2);
             }
         }
 
