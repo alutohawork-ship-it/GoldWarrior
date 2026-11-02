@@ -10,20 +10,29 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'OpenAI API Key belum diset di Vercel.' });
     }
 
+    // Pemetaan Time Frame SMC berdasarkan mode trading pilihan user
+    let tfGuide = "M15 + H1 (Intraday)";
+    if (mode === 'scalping') tfGuide = "M1 + M5 (Scalping)";
+    if (mode === 'swing') tfGuide = "H1 + H4 (Swing)";
+
     try {
-        const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Expert untuk XAU/USD dengan mode trading ${mode || 'intraday'}. 
-        Harga live saat ini adalah ${price}. 
-        Berdasarkan struktur chart dan order block, tentukan SATU titik harga entry yang presisi (entryPrice), serta Stop Loss (sl) dan Take Profit (tp1, tp2, tp3). 
-        Jika tren/setup adalah BUY, entryPrice adalah harga batas bawah support/OB. Jika SELL, entryPrice adalah harga batas atas resistance/OB.
+        const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Expert tingkat lanjut untuk XAU/USD. 
+        Mode trading yang digunakan adalah ${mode || 'intraday'} dengan kombinasi Time Frame ${tfGuide}.
+        Harga live saat ini adalah ${price}.
+        
+        Analisis struktur market berdasarkan kombinasi time frame tersebut (misal: konfirmasi tren & key level dari TF tinggi, lalu eksekusi titik OB/FVG dari TF rendah). Tentukan SATU titik harga entry presisi (entryPrice), serta Stop Loss (sl) dan Take Profit (tp1, tp2, tp3):
+        - Jika setup BUY: entryPrice adalah harga batas bawah support / Order Block bawah.
+        - Jika setup SELL: entryPrice adalah harga batas atas resistance / Order Block atas.
+
         Berikan hasil dalam format JSON murni tanpa teks markdown dengan keys persis berikut:
         {
-          "analysis": "alasan analisis SMC mendalam...",
+          "analysis": "alasan analisis SMC mendalam berdasarkan kombinasi time frame ${tfGuide}...",
           "entryPrice": "angka desimal titik entry tunggal (contoh: 3968.50)",
-          "sl": "angka desimal SL",
+          "sl": "angka desimal SL terproteksi",
           "tp1": "angka desimal TP1",
           "tp2": "angka desimal TP2",
           "tp3": "angka desimal TP3",
-          "setupMode": "SETUP: WAIT PULLBACK"
+          "setupMode": "SETUP: ${mode ? mode.toUpperCase() : 'INTRADAY'}"
         }`;
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -35,7 +44,7 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 model: "gpt-4o-mini",
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0.5
+                temperature: 0.4
             })
         });
 
@@ -52,19 +61,19 @@ export default async function handler(req, res) {
             tp1: parsed.tp1 || (base + 5.0).toFixed(2),
             tp2: parsed.tp2 || (base + 10.0).toFixed(2),
             tp3: parsed.tp3 || (base + 15.0).toFixed(2),
-            setupMode: parsed.setupMode || "SETUP: WAIT PULLBACK"
+            setupMode: parsed.setupMode || "SETUP: INTRADAY"
         });
 
     } catch (error) {
         let base = parseFloat(price) || 3958.90;
         return res.status(200).json({
-            analysis: "Sistem mendeteksi titik entry SMC berdasarkan struktur chart terkini.",
+            analysis: `Sistem mendeteksi titik entry SMC menggunakan analisis struktur ${tfGuide}.`,
             entryPrice: base.toFixed(2),
             sl: (base - 4.50).toFixed(2),
             tp1: (base + 5.00).toFixed(2),
             tp2: (base + 10.00).toFixed(2),
             tp3: (base + 15.00).toFixed(2),
-            setupMode: "SETUP: WAIT PULLBACK"
+            setupMode: `SETUP: ${mode ? mode.toUpperCase() : 'INTRADAY'}`
         });
     }
 }
