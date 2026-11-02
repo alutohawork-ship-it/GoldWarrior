@@ -11,15 +11,15 @@ export default async function handler(req, res) {
     }
 
     try {
-        const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Expert tingkat lanjut untuk XAU/USD dengan mode trading ${mode || 'intraday'}. 
+        const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Expert untuk XAU/USD dengan mode trading ${mode || 'intraday'}. 
         Harga live saat ini adalah ${price}. 
-        Analisis struktur market terkini (struktur harga, likuiditas, Order Block, dan FVG yang terlihat pada time frame widget TradingView). Jangan menebak atau melompati harga secara acak; pastikan rentang Zona Entry (zoneLow & zoneHigh), Stop Loss (sl), dan Take Profit (tp1, tp2, tp3) benar-benar logis, realistis, dan presisi mengikuti struktur harga live saat ini.
+        Berdasarkan struktur chart dan order block, tentukan SATU titik harga entry yang presisi (entryPrice), serta Stop Loss (sl) dan Take Profit (tp1, tp2, tp3). 
+        Jika tren/setup adalah BUY, entryPrice adalah harga batas bawah support/OB. Jika SELL, entryPrice adalah harga batas atas resistance/OB.
         Berikan hasil dalam format JSON murni tanpa teks markdown dengan keys persis berikut:
         {
-          "analysis": "alasan analisis SMC mendalam berdasarkan struktur harga...",
-          "zoneLow": "angka desimal batas bawah zona entry",
-          "zoneHigh": "angka desimal batas atas zona entry",
-          "sl": "angka desimal SL terproteksi",
+          "analysis": "alasan analisis SMC mendalam...",
+          "entryPrice": "angka desimal titik entry tunggal (contoh: 3968.50)",
+          "sl": "angka desimal SL",
           "tp1": "angka desimal TP1",
           "tp2": "angka desimal TP2",
           "tp3": "angka desimal TP3",
@@ -47,8 +47,7 @@ export default async function handler(req, res) {
         let base = parseFloat(price);
         return res.status(200).json({
             analysis: parsed.analysis || "Analisis struktur SMC Selesai.",
-            zoneLow: parsed.zoneLow || (base - 1.5).toFixed(2),
-            zoneHigh: parsed.zoneHigh || (base + 1.5).toFixed(2),
+            entryPrice: parsed.entryPrice || base.toFixed(2),
             sl: parsed.sl || (base - 4.5).toFixed(2),
             tp1: parsed.tp1 || (base + 5.0).toFixed(2),
             tp2: parsed.tp2 || (base + 10.0).toFixed(2),
@@ -59,9 +58,8 @@ export default async function handler(req, res) {
     } catch (error) {
         let base = parseFloat(price) || 3958.90;
         return res.status(200).json({
-            analysis: "Sistem mendeteksi zona diskon SMC berdasarkan struktur chart terkini.",
-            zoneLow: (base - 1.5).toFixed(2),
-            zoneHigh: (base + 1.5).toFixed(2),
+            analysis: "Sistem mendeteksi titik entry SMC berdasarkan struktur chart terkini.",
+            entryPrice: base.toFixed(2),
             sl: (base - 4.50).toFixed(2),
             tp1: (base + 5.00).toFixed(2),
             tp2: (base + 10.00).toFixed(2),
