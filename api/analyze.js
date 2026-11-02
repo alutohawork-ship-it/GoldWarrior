@@ -3,7 +3,7 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { price } = req.body;
+    const { price, mode } = req.body;
     const openaiApiKey = process.env.OPENAI_API_KEY;
 
     if (!openaiApiKey) {
@@ -11,16 +11,19 @@ export default async function handler(req, res) {
     }
 
     try {
-        const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Expert untuk XAU/USD. 
+        const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Expert untuk XAU/USD dengan mode trading ${mode || 'intraday'}. 
         Harga live saat ini adalah ${price}.
-        Berikan analisis teknikal singkat dalam format JSON murni tanpa teks markdown dengan keys persis berikut:
+        Tentukan Zona Order Block / FVG terdekat yang valid untuk entry.
+        Berikan analisis teknikal dalam format JSON murni tanpa teks markdown dengan keys persis berikut:
         {
           "analysis": "alasan analisis SMC...",
-          "sl": "angka SL dengan format desimal (contoh: 3954.00)",
-          "tp1": "angka TP1 (contoh: 3965.00)",
-          "tp2": "angka TP2 (contoh: 3975.00)",
-          "tp3": "angka TP3 (contoh: 3985.00)",
-          "setupMode": "SETUP: DIRECT ENTRY"
+          "zoneLow": "harga batas bawah zona entry (contoh: 3968.00)",
+          "zoneHigh": "harga batas atas zona entry (contoh: 3971.00)",
+          "sl": "angka SL dengan format desimal (contoh: 3965.00)",
+          "tp1": "angka TP1 (contoh: 3974.50)",
+          "tp2": "angka TP2 (contoh: 3979.50)",
+          "tp3": "angka TP3 (contoh: 3984.50)",
+          "setupMode": "SETUP: WAIT PULLBACK"
         }`;
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -41,19 +44,24 @@ export default async function handler(req, res) {
         const cleanContent = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(cleanContent);
 
+        let base = parseFloat(price);
         return res.status(200).json({
             analysis: parsed.analysis || "Analisis SMC Selesai.",
-            sl: parsed.sl || (parseFloat(price) - 4.5).toFixed(2),
-            tp1: parsed.tp1 || (parseFloat(price) + 5.0).toFixed(2),
-            tp2: parsed.tp2 || (parseFloat(price) + 10.0).toFixed(2),
-            tp3: parsed.tp3 || (parseFloat(price) + 15.0).toFixed(2),
+            zoneLow: parsed.zoneLow || (base - 1.5).toFixed(2),
+            zoneHigh: parsed.zoneHigh || (base + 1.5).toFixed(2),
+            sl: parsed.sl || (base - 4.5).toFixed(2),
+            tp1: parsed.tp1 || (base + 5.0).toFixed(2),
+            tp2: parsed.tp2 || (base + 10.0).toFixed(2),
+            tp3: parsed.tp3 || (base + 15.0).toFixed(2),
             setupMode: parsed.setupMode || "SETUP: WAIT PULLBACK"
         });
 
     } catch (error) {
         let base = parseFloat(price) || 3958.90;
         return res.status(200).json({
-            analysis: "Sistem mendeteksi zona diskon SMC. Harga live diproses menggunakan ATR Buffer untuk menghindari stop hunt.",
+            analysis: "Sistem mendeteksi zona diskon SMC. Harga live diproses menggunakan ATR Buffer.",
+            zoneLow: (base - 1.5).toFixed(2),
+            zoneHigh: (base + 1.5).toFixed(2),
             sl: (base - 4.50).toFixed(2),
             tp1: (base + 5.00).toFixed(2),
             tp2: (base + 10.00).toFixed(2),
