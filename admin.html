@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - AI SMC Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: #0b0f19; color: #e2e8f0; font-family: ui-sans-serif, system-ui, sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen p-4 max-w-md mx-auto space-y-4">
+    <div class="flex justify-between items-center bg-slate-900 p-3 rounded-xl border border-slate-800">
+        <h1 class="text-xs font-bold text-amber-400">🔒 ADMIN PANEL: DAFTARKAN CLIENT</h1>
+        <button onclick="localStorage.clear(); window.location.href='index.html';" class="text-[10px] text-rose-400 hover:underline cursor-pointer">Logout</button>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+        <h2 class="text-xs font-bold text-white">Tambah Akses Client Baru</h2>
+        <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Email Client</label>
+            <input type="email" id="new-email" placeholder="client@email.com" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-xs text-amber-400 font-mono focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Jenis Akses</label>
+            <select id="new-status" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-xs text-white font-semibold focus:outline-none">
+                <option value="trial">Trial (Uji Coba)</option>
+                <option value="lifetime">Lifetime (Selamanya)</option>
+            </select>
+        </div>
+        <button onclick="registerClient()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded text-xs transition cursor-pointer">Daftarkan Client</button>
+        <div id="admin-msg" class="text-[10px] text-center font-semibold"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ytmyvxteokyqquzfhhvh.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0bXl2eHRlb2t5cXF1emZoaHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MzA2NjcsImV4cCI6MjEwOTIwNjY2N30.gIOrqhhxzAJI0BiPfJw62wCx6eLNOSiWCSoSt1vgQ1Q';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.onload = function() {
+            const role = localStorage.getItem('user_role');
+            if (role !== 'admin') {
+                alert('Akses ditolak! Anda bukan admin.');
+                window.location.href = 'index.html';
+            }
+        };
+
+        async function registerClient() {
+            const email = document.getElementById('new-email').value.trim();
+            const status = document.getElementById('new-status').value;
+            const msg = document.getElementById('admin-msg');
+
+            if (!email) {
+                msg.className = "text-[10px] text-rose-400 text-center font-semibold";
+                msg.innerText = "Masukkan email client!";
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from('users')
+                .insert([{ email: email, role: 'user', status: status }]);
+
+            if (error) {
+                msg.className = "text-[10px] text-rose-400 text-center font-semibold";
+                msg.innerText = "Gagal: " + error.message;
+            } else {
+                msg.className = "text-[10px] text-emerald-400 text-center font-semibold";
+                msg.innerText = `Berhasil mendaftarkan ${email} sebagai ${status.toUpperCase()}!`;
+                document.getElementById('new-email').value = "";
+            }
+        }
+    </script>
+</body>
+</html>
