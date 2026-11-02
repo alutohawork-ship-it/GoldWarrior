@@ -8,7 +8,8 @@
     <style>
         body { background-color: #0b0f19; color: #e2e8f0; font-family: ui-sans-serif, system-ui, sans-serif; }
         .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.08); }
-        .zone-box { background: repeating-linear-gradient(45deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.15) 10px, rgba(16, 185, 129, 0.25) 10px, rgba(16, 185, 129, 0.25) 20px); }
+        .zone-box-buy { background: repeating-linear-gradient(45deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.15) 10px, rgba(16, 185, 129, 0.25) 10px, rgba(16, 185, 129, 0.25) 20px); }
+        .zone-box-sell { background: repeating-linear-gradient(45deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.15) 10px, rgba(239, 68, 68, 0.25) 10px, rgba(239, 68, 68, 0.25) 20px); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-3 max-w-md mx-auto space-y-3">
@@ -35,7 +36,7 @@
         <div id="tradingview_widget" style="width: 100%; height: 220px; border-radius: 8px; overflow: hidden;"></div>
     </div>
 
-    <!-- ZONA ENTRY UTAMA -->
+    <!-- ZONA ENTRY UTAMA (DENGAN KETERANGAN BUY / SELL) -->
     <div id="zone-banner" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center glow space-y-1">
         <div id="zone-title" class="text-[10px] tracking-widest text-slate-400 font-bold">MENUNGGU ANALISIS AI</div>
         <div id="zone-range" class="text-2xl font-black text-white font-mono">-</div>
@@ -101,8 +102,8 @@
                 <span class="text-[10px] text-rose-400 font-bold">SL (ATR PROTECTED)</span>
                 <span id="map-sl-val" class="text-rose-400 font-bold">-</span>
             </div>
-            <div id="map-entry-box" class="zone-box border border-emerald-500 rounded p-1.5 text-center my-1">
-                <div id="map-entry-text" class="text-[10px] font-bold text-emerald-300">ZONA ENTRY</div>
+            <div id="map-entry-box" class="border rounded p-1.5 text-center my-1 zone-box-buy">
+                <div id="map-entry-text" class="text-[10px] font-bold text-emerald-300">ZONA BELI</div>
             </div>
             <div class="flex items-center justify-center my-1 relative">
                 <div class="absolute w-full border-t border-blue-500/50"></div>
@@ -174,10 +175,19 @@
                 document.getElementById('setup-mode-badge').innerText = result.setupMode;
 
                 let base = parseFloat(price);
+                let slVal = parseFloat(result.sl);
+                
+                // Deteksi otomatis apakah tipe sinyal BUY atau SELL
+                let isBuy = slVal < base;
+                let actionText = isBuy ? "ZONA BELI" : "ZONA JUAL";
+                let actionColorClass = isBuy ? "text-emerald-400" : "text-rose-400";
+                let zoneBoxClass = isBuy ? "zone-box-buy border-emerald-500" : "zone-box-sell border-rose-500";
+
                 let zoneLow = (base - 2.0).toFixed(2);
                 let zoneHigh = (base + 2.0).toFixed(2);
+
                 document.getElementById('zone-range').innerText = `${zoneLow} - ${zoneHigh}`;
-                document.getElementById('zone-title').innerText = "ZONA ENTRY (SMC)";
+                document.getElementById('zone-title').innerHTML = `<span class="${actionColorClass}">${actionText} (SMC)</span>`;
                 document.getElementById('zone-status-text').innerText = `LIVE ${base} di dalam zona`;
 
                 document.getElementById('map-sl-val').innerText = result.sl;
@@ -185,14 +195,17 @@
                 document.getElementById('map-tp1').innerText = result.tp1;
                 document.getElementById('map-tp2').innerText = result.tp2;
                 document.getElementById('map-tp3').innerText = result.tp3;
-                document.getElementById('map-entry-text').innerText = `ZONA ENTRY (${zoneLow} - ${zoneHigh})`;
+                
+                let entryBox = document.getElementById('map-entry-box');
+                entryBox.className = `border rounded p-1.5 text-center my-1 ${zoneBoxClass}`;
+                document.getElementById('map-entry-text').innerHTML = `<span class="${actionColorClass} font-bold">${actionText} (${zoneLow} - ${zoneHigh})</span>`;
 
             } catch (err) {
                 let base = parseFloat(price);
                 let zoneLow = (base - 2.0).toFixed(2);
                 let zoneHigh = (base + 2.0).toFixed(2);
 
-                document.getElementById('reason-content').innerHTML = `⚠️ <b>Mode Fallback Aktif:</b> Harga Live $${base} mendeteksi Order Block dan mitigasi FVG pada time frame kecil.`;
+                document.getElementById('reason-content').innerHTML = `⚠️ <b>Mode Fallback Aktif:</b> Harga Live $${base} mendeteksi Order Block dan mitigasi FVG.`;
                 document.getElementById('val-sl').innerText = (base - 4.5).toFixed(2);
                 document.getElementById('val-tp1').innerText = (base + 5.0).toFixed(2);
                 document.getElementById('val-tp2').innerText = (base + 10.0).toFixed(2);
@@ -200,13 +213,17 @@
                 document.getElementById('setup-mode-badge').innerText = "SETUP: DIRECT ENTRY";
 
                 document.getElementById('zone-range').innerText = `${zoneLow} - ${zoneHigh}`;
-                document.getElementById('zone-title').innerText = "ZONA ENTRY (SMC)";
+                document.getElementById('zone-title').innerHTML = `<span class="text-emerald-400">ZONA BELI (SMC)</span>`;
                 document.getElementById('zone-status-text').innerText = `LIVE ${base} di dalam zona`;
                 document.getElementById('map-sl-val').innerText = (base - 4.5).toFixed(2);
                 document.getElementById('map-live-price').innerText = base.toFixed(2);
                 document.getElementById('map-tp1').innerText = (base + 5.0).toFixed(2);
                 document.getElementById('map-tp2').innerText = (base + 10.0).toFixed(2);
                 document.getElementById('map-tp3').innerText = (base + 15.0).toFixed(2);
+                
+                let entryBox = document.getElementById('map-entry-box');
+                entryBox.className = `border rounded p-1.5 text-center my-1 zone-box-buy border-emerald-500`;
+                document.getElementById('map-entry-text').innerHTML = `<span class="text-emerald-400 font-bold">ZONA BELI (${zoneLow} - ${zoneHigh})</span>`;
             }
         }
 
