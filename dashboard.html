@@ -196,11 +196,10 @@
                 let actionColorClass = isBuy ? "text-emerald-400" : "text-rose-400";
                 let zoneBoxClass = isBuy ? "zone-box-buy border-emerald-500" : "zone-box-sell border-rose-500";
 
-                // Menggunakan zoneLow & zoneHigh murni hasil kalkulasi OpenAI
                 let zoneLow = parseFloat(result.zoneLow).toFixed(2);
                 let zoneHigh = parseFloat(result.zoneHigh).toFixed(2);
 
-                let statusInZone = (base >= zoneLow && base <= zoneHigh) ? "di dalam zona" : "menunggu pullback ke zona";
+                let statusInZone = (base >= parseFloat(zoneLow) && base <= parseFloat(zoneHigh)) ? "di dalam zona" : "menunggu pullback ke zona";
 
                 document.getElementById('zone-range').innerText = `${zoneLow} - ${zoneHigh}`;
                 document.getElementById('zone-title').innerHTML = `<span class="${actionColorClass}">${actionText} (${mode.toUpperCase()})</span>`;
