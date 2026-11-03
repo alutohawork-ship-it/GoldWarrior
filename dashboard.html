@@ -1,667 +1,214 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>XAU/USD SMC AI Dashboard</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #070a0f; color: #e6e9ef; font-family: system-ui, -apple-system, sans-serif; }
-    .container { max-width: 1200px; margin: auto; padding: 20px; }
-    header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
-    header h1 { font-size: 20px; margin: 0; }
-    header h1 span { color: #facc15; }
-    .live { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8b98a9; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: blink 1.5s infinite; }
-    .dot.off { background: #f87171; animation: none; }
-    @keyframes blink { 50% { opacity: .3; } }
-
-    .layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
-    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-
-    .panel { background: #0f141c; border: 1px solid #1f2a37; border-radius: 12px; padding: 16px; }
-    .panel h3 { margin: 0 0 12px; font-size: 15px; }
-
-    /* ===== Widget SMC ===== */
-    .smc-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .smc-title { font-size: 13px; color: #8b98a9; }
-    .smc-price { font-size: 28px; font-weight: 700; }
-    select { background: #1a2230; color: #e6e9ef; border: 1px solid #2b3a4d; border-radius: 8px; padding: 8px 10px; }
-    .smc-rec { margin: 12px 0 4px; padding: 10px; border-radius: 8px; text-align: center; font-weight: 700; letter-spacing: 1px; background: #2a3342; }
-    .smc-rec.buy { background: #0f5132; color: #7dffb3; }
-    .smc-rec.sell { background: #5c1a1a; color: #ff9b9b; }
-    .smc-status { font-size: 12px; color: #8b98a9; margin-bottom: 8px; }
-    .progress { height: 6px; background: #1a2230; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
-    .progress div { height: 100%; background: #facc15; width: 0; transition: width .3s; }
-    canvas { width: 100%; height: 240px; background: #0b1017; border-radius: 8px; display: block; }
-    .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: #8b98a9; margin-top: 6px; }
-    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
-    .smc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-top: 12px; }
-    .smc-card { background: #141b26; border-radius: 8px; padding: 10px; font-size: 13px; }
-    .smc-card h4 { margin: 0 0 6px; font-size: 14px; }
-    .smc-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed #1f2a37; }
-    .smc-row span:first-child { color: #8b98a9; }
-    .bull { color: #4ade80; } .bear { color: #f87171; } .muted { color: #8b98a9; }
-
-    /* ===== Panel AI ===== */
-    .btn { width: 100%; padding: 12px; border: 0; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; }
-    .btn-primary { background: #facc15; color: #111; }
-    .btn-ghost { background: #1a2230; color: #e6e9ef; margin-top: 8px; }
-    .btn:disabled { opacity: .5; cursor: not-allowed; }
-    .signal { margin-top: 14px; display: none; }
-    .signal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .badge { padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 13px; }
-    .badge.BUY { background: #0f5132; color: #7dffb3; }
-    .badge.SELL { background: #5c1a1a; color: #ff9b9b; }
-    .badge.WAIT { background: #2a3342; color: #e6e9ef; }
-    .analysis { background: #141b26; border-radius: 8px; padding: 12px; font-size: 13px; line-height: 1.6; white-space: pre-line; }
-    .levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-    .levels div { background: #141b26; padding: 8px; border-radius: 8px; text-align: center; font-size: 12px; color: #8b98a9; }
-    .levels b { display: block; font-size: 14px; color: #e6e9ef; margin-top: 2px; }
-    .meta { font-size: 11px; color: #8b98a9; margin-top: 8px; }
-    .history { margin-top: 16px; }
-    .history h4 { font-size: 13px; margin: 0 0 6px; color: #8b98a9; }
-    .history-item { font-size: 12px; padding: 6px 0; border-bottom: 1px dashed #1f2a37; display: flex; justify-content: space-between; gap: 8px; }
-    .disclaimer { font-size: 11px; color: #6b7685; margin-top: 16px; text-align: center; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI SMC XAU/USD Pro Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0b0f19; color: #e2e8f0; font-family: ui-sans-serif, system-ui, sans-serif; }
+        .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.08); }
+    </style>
 </head>
-<body>
-<div class="container">
-  <header>
-    <h1>XAU/USD <span>SMC AI</span> Dashboard</h1>
-    <div class="live"><div class="dot" id="liveDot"></div><span id="liveText">Menghubungkan...</span></div>
-  </header>
+<body class="min-h-screen flex flex-col p-3 max-w-md mx-auto space-y-3">
 
-  <div class="layout">
-    <!-- ===== Kiri: Widget SMC ===== -->
-    <div class="panel">
-      <div class="smc-head">
-        <div>
-          <div class="smc-title">XAU/USD · SMC Structure Analyzer</div>
-          <div class="smc-price" id="price">-</div>
+    <!-- Header & Live Ticker -->
+    <header class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex justify-between items-center glow">
+        <div class="flex items-center space-x-2">
+            <span id="sync-dot" class="h-2.5 w-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+            <span class="text-xs font-bold tracking-wider text-emerald-400">GOLD API LIVE</span>
+            <span id="live-xau-price" class="text-xs font-mono font-bold text-white">Menghubungkan...</span>
         </div>
-        <select id="mode">
-          <option value="scalping">Scalping (M1 + M5)</option>
-          <option value="intraday" selected>Intraday (M15 + H1)</option>
-          <option value="swing">Swing (H1 + H4)</option>
-        </select>
-      </div>
-      <div class="smc-rec" id="rec">MENGUMPULKAN DATA</div>
-      <div class="smc-status" id="status"></div>
-      <div class="progress"><div id="progressBar"></div></div>
-      <canvas id="chart"></canvas>
-      <div class="legend">
-        <span><i style="background:rgba(74,222,128,.4)"></i>Bullish OB</span>
-        <span><i style="background:rgba(248,113,113,.4)"></i>Bearish OB</span>
-        <span><i style="background:rgba(96,165,250,.4)"></i>FVG</span>
-        <span><i style="background:#facc15"></i>Harga</span>
-        <span id="chartTF"></span>
-      </div>
-      <div class="smc-grid" id="tfs"></div>
+        <div class="flex items-center space-x-2">
+            <span id="user-session-email" class="text-[9px] bg-slate-800 px-2 py-1 rounded text-amber-400 font-semibold">-</span>
+            <button onclick="logoutUser()" class="text-[9px] text-rose-400 hover:underline cursor-pointer">Logout</button>
+        </div>
+    </header>
+
+    <!-- WIDGET TRADINGVIEW -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-2 glow flex flex-col space-y-2">
+        <div class="flex justify-between items-center px-1">
+            <span class="text-[11px] font-bold text-slate-300">CHART ANALISIS (TRADINGVIEW)</span>
+            <span class="text-[10px] text-emerald-400 font-mono font-bold">XAU/USD</span>
+        </div>
+        <div id="tradingview_widget" style="width: 100%; height: 220px; border-radius: 8px; overflow: hidden;"></div>
     </div>
 
-    <!-- ===== Kanan: Panel AI ===== -->
-    <div class="panel">
-      <h3>🤖 Analisa AI (Harga Gold + Widget)</h3>
-      <button class="btn btn-primary" id="btnAnalyze" disabled>🔍 Analisa Sekarang</button>
-      <button class="btn btn-ghost" id="btnCopy" disabled>📋 Salin Sinyal</button>
-
-      <div class="signal" id="signal">
-        <div class="signal-head">
-          <div id="sigMode" class="muted" style="font-size:12px"></div>
-          <div class="badge WAIT" id="sigDir">WAIT</div>
+    <!-- MODE TRADING -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 glow space-y-2">
+        <div class="flex justify-between items-center">
+            <label class="text-[10px] text-slate-400 font-bold">MODE & TIME FRAME:</label>
+            <select id="trading-mode" class="bg-slate-950 border border-slate-700 text-amber-400 text-xs font-bold rounded px-2 py-1 focus:outline-none">
+                <option value="scalping">⚡ Scalping (M1 + M5)</option>
+                <option value="intraday" selected>🎯 Intraday (M15 + H1)</option>
+                <option value="swing">📈 Swing (H1 + H4)</option>
+            </select>
         </div>
-        <div class="analysis" id="sigText"></div>
-        <div class="levels">
-          <div>Entry<b id="lvEntry">-</b></div>
-          <div>Stop Loss<b id="lvSL" class="bear">-</b></div>
-          <div>Harga<b id="lvPrice">-</b></div>
-          <div>TP1<b id="lvTP1" class="bull">-</b></div>
-          <div>TP2<b id="lvTP2" class="bull">-</b></div>
-          <div>TP3<b id="lvTP3" class="bull">-</b></div>
-        </div>
-        <div class="meta" id="sigMeta"></div>
-      </div>
-
-      <div class="history">
-        <h4>Riwayat Sinyal</h4>
-        <div id="history"><div class="muted" style="font-size:12px">Belum ada sinyal.</div></div>
-      </div>
-
-      <button class="btn btn-ghost" id="btnReset">🗑️ Reset Data Candle</button>
     </div>
-  </div>
 
-  <div class="disclaimer">⚠️ Analisa ini alat bantu berbasis data harga & indikator teknikal, bukan jaminan profit. Selalu gunakan manajemen risiko.</div>
-</div>
+    <div id="zone-banner" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center glow space-y-1">
+        <div id="zone-title" class="text-[10px] tracking-widest text-slate-400 font-bold">MENUNGGU ANALISIS STRUKTUR AI</div>
+        <div id="zone-range" class="text-3xl font-black text-white font-mono">-</div>
+        <div class="text-[10px] text-emerald-400 font-semibold">
+            <span class="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-ping mr-1"></span>
+            <span id="zone-status-text">Klik tombol di bawah untuk mulai menganalisis</span>
+        </div>
+    </div>
 
-<script>
-(function () {
-  // ================= Konfigurasi =================
-  const CONFIG = {
-    priceUrls: ['/api/price', 'https://api.gold-api.com/price/XAU'], // utama + cadangan
-    analyzeUrl: '/api/analyze',
-    pollMs: 10000,
-    maxM1: 6000,
-    minCandles: 30,
-    storageKey: 'xau_m1_candles_v1',
-    historyKey: 'xau_signal_history_v1'
-  };
+    <!-- SL & TP CARDS -->
+    <div class="grid grid-cols-4 gap-1.5 text-center">
+        <div class="bg-slate-900 border border-rose-900/50 rounded-lg p-2">
+            <div class="text-[10px] text-slate-400 font-bold">SL (STRUCTURE)</div>
+            <div id="val-sl" class="text-xs font-mono font-bold text-rose-400">-</div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-2">
+            <div class="text-[10px] text-slate-400 font-bold">TP1</div>
+            <div id="val-tp1" class="text-xs font-mono font-bold text-slate-300">-</div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-2">
+            <div class="text-[10px] text-slate-400 font-bold">TP2</div>
+            <div id="val-tp2" class="text-xs font-mono font-bold text-slate-300">-</div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-2">
+            <div class="text-[10px] text-slate-400 font-bold">TP3</div>
+            <div id="val-tp3" class="text-xs font-mono font-bold text-slate-300">-</div>
+        </div>
+    </div>
 
-  const TF_MIN = { M1: 1, M5: 5, M15: 15, H1: 60, H4: 240 };
-  const MODE_TF = { scalping: ['M1', 'M5'], intraday: ['M15', 'H1'], swing: ['H1', 'H4'] };
+    <!-- ACTION BUTTON -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 glow space-y-2">
+        <div class="flex space-x-2 items-center">
+            <div class="flex-1">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-[10px] text-slate-400">Harga Live Gold API</label>
+                    <button onclick="fetchGoldPrice()" class="text-[9px] text-blue-400 hover:underline cursor-pointer">🔄 Sync Harga</button>
+                </div>
+                <input type="number" id="input-price" step="any" placeholder="Memuat harga..." class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1.5 text-xs text-amber-400 font-mono focus:outline-none">
+            </div>
+            <div class="w-1/3">
+                <label class="block text-[10px] text-slate-400 mb-1">Status AI</label>
+                <div id="bias-badge" class="bg-slate-950 border border-slate-800 text-slate-400 font-bold text-[10px] rounded px-2 py-2 text-center">SMC READY</div>
+            </div>
+        </div>
+        <button onclick="requestOpenAIAnalysis()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded text-xs transition cursor-pointer shadow-lg flex items-center justify-center space-x-1">
+            <span>✨ Jalankan Analisis Struktur SMC</span>
+        </button>
+    </div>
 
-  const $ = id => document.getElementById(id);
-  const fmt = (n, d = 2) => (n == null || !isFinite(n) ? '-' : Number(n).toFixed(d));
-  const round = (n, d = 2) => (n == null || !isFinite(n) ? null : Number(Number(n).toFixed(d)));
+    <!-- PETA STRUKTUR -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 glow space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <h2 class="text-xs font-bold tracking-wider text-white">PETA STRUKTUR & ALASAN ENTRY</h2>
+            <span id="setup-mode-badge" class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-bold">MENUNGGU</span>
+        </div>
 
-  // ================= Indikator =================
-  function ema(values, period) {
-    if (values.length < period) return null;
-    const k = 2 / (period + 1);
-    let e = values.slice(0, period).reduce((a, b) => a + b, 0) / period;
-    for (let i = period; i < values.length; i++) e = values[i] * k + e * (1 - k);
-    return e;
-  }
+        <div id="reason-content" class="bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 font-sans leading-relaxed">
+            [System]: Pilih mode trading, pastikan harga live tersinkron, lalu klik jalankan analisis struktur.
+        </div>
 
-  function rsi(closes, period = 14) {
-    if (closes.length < period + 1) return null;
-    let gain = 0, loss = 0;
-    for (let i = 1; i <= period; i++) {
-      const d = closes[i] - closes[i - 1];
-      if (d >= 0) gain += d; else loss -= d;
-    }
-    gain /= period; loss /= period;
-    for (let i = period + 1; i < closes.length; i++) {
-      const d = closes[i] - closes[i - 1];
-      gain = (gain * (period - 1) + Math.max(d, 0)) / period;
-      loss = (loss * (period - 1) + Math.max(-d, 0)) / period;
-    }
-    if (loss === 0) return gain === 0 ? 50 : 100;
-    return 100 - 100 / (1 + gain / loss);
-  }
+        <div class="relative bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs flex flex-col justify-between h-40">
+            <div class="flex justify-between items-center border-b border-dashed border-rose-500/40 pb-1">
+                <span class="text-[10px] text-rose-400 font-bold">SL (PROTECTED)</span>
+                <span id="map-sl-val" class="text-rose-400 font-bold">-</span>
+            </div>
+            <div id="map-entry-box" class="border border-emerald-500 rounded p-1.5 text-center my-1 bg-emerald-950/30">
+                <div id="map-entry-text" class="text-xs font-bold text-emerald-300">TITIK ENTRY: -</div>
+            </div>
+            <div class="flex items-center justify-center my-1 relative">
+                <div class="absolute w-full border-t border-blue-500/50"></div>
+                <div class="relative z-10 bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow">
+                    ▼ LIVE: <span id="map-live-price">-</span>
+                </div>
+            </div>
+            <div class="flex justify-between items-center text-[10px] pt-1 border-t border-slate-800 text-slate-400">
+                <span>TP1: <b id="map-tp1" class="text-white">-</b></span>
+                <span>TP2: <b id="map-tp2" class="text-white">-</b></span>
+                <span>TP3: <b id="map-tp3" class="text-white">-</b></span>
+            </div>
+        </div>
+    </div>
 
-  function atr(c, period = 14) {
-    if (c.length < period + 1) return null;
-    const trs = [];
-    for (let i = 1; i < c.length; i++) {
-      trs.push(Math.max(c[i].h - c[i].l, Math.abs(c[i].h - c[i - 1].c), Math.abs(c[i].l - c[i - 1].c)));
-    }
-    let a = trs.slice(0, period).reduce((x, y) => x + y, 0) / period;
-    for (let i = period; i < trs.length; i++) a = (a * (period - 1) + trs[i]) / period;
-    return a;
-  }
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script>
+        window.onload = function() {
+            const email = localStorage.getItem('user_email');
+            if(!email) {
+                window.location.href = 'index.html';
+            } else {
+                document.getElementById('user-session-email').innerText = email;
+            }
+            
+            new TradingView.widget({
+                "width": "100%", "height": 220, "symbol": "OANDA:XAUUSD", "interval": "15",
+                "timezone": "Asia/Jakarta", "theme": "dark", "style": "1", "container_id": "tradingview_widget"
+            });
+            
+            fetchGoldPrice();
+            setInterval(fetchGoldPrice, 15000);
+        };
 
-  // ================= Candle builder =================
-  function aggregate(m1, minutes) {
-    if (minutes === 1) return m1.map(c => ({ ...c }));
-    const ms = minutes * 60000;
-    const out = [];
-    for (const c of m1) {
-      const t = Math.floor(c.t / ms) * ms;
-      const last = out[out.length - 1];
-      if (last && last.t === t) {
-        last.h = Math.max(last.h, c.h);
-        last.l = Math.min(last.l, c.l);
-        last.c = c.c;
-      } else {
-        out.push({ t, o: c.o, h: c.h, l: c.l, c: c.c });
-      }
-    }
-    return out;
-  }
-
-  // ================= SMC =================
-  function findSwings(c, k = 2) {
-    const highs = [], lows = [];
-    for (let i = k; i < c.length - k; i++) {
-      let isH = true, isL = true;
-      for (let j = 1; j <= k; j++) {
-        if (!(c[i].h > c[i - j].h && c[i].h >= c[i + j].h)) isH = false;
-        if (!(c[i].l < c[i - j].l && c[i].l <= c[i + j].l)) isL = false;
-      }
-      if (isH) highs.push({ i, price: c[i].h });
-      if (isL) lows.push({ i, price: c[i].l });
-    }
-    return { highs, lows };
-  }
-
-  function analyzeStructure(c, k = 2) {
-    const { highs, lows } = findSwings(c, k);
-    let trend = 'NEUTRAL';
-    const events = [], obs = [];
-    let hIdx = 0, lIdx = 0, lastHigh = null, lastLow = null;
-
-    for (let i = 0; i < c.length; i++) {
-      while (hIdx < highs.length && highs[hIdx].i + k <= i) { lastHigh = { ...highs[hIdx], broken: false }; hIdx++; }
-      while (lIdx < lows.length && lows[lIdx].i + k <= i) { lastLow = { ...lows[lIdx], broken: false }; lIdx++; }
-
-      if (lastHigh && !lastHigh.broken && c[i].c > lastHigh.price) {
-        events.push({ type: trend === 'BEARISH' ? 'CHoCH' : 'BOS', dir: 'BULLISH', level: lastHigh.price, i });
-        trend = 'BULLISH';
-        lastHigh.broken = true;
-        for (let j = i - 1; j >= Math.max(0, i - 15); j--) {
-          if (c[j].c < c[j].o) { obs.push({ dir: 'BULLISH', top: c[j].h, bottom: c[j].l, i: j, breakIdx: i, mitigated: false, invalid: false }); break; }
+        async function fetchGoldPrice() {
+            try {
+                let res = await fetch('https://api.gold-api.com/price/XAU/USD');
+                let data = await res.json();
+                if(data && data.price) {
+                    let livePrice = parseFloat(data.price).toFixed(2);
+                    document.getElementById('input-price').value = livePrice;
+                    document.getElementById('live-xau-price').innerText = `XAU ${livePrice}`;
+                    document.getElementById('map-live-price').innerText = livePrice;
+                    document.getElementById('sync-dot').className = "h-2.5 w-2.5 bg-emerald-500 rounded-full animate-pulse";
+                }
+            } catch(e) { 
+                console.error("Gagal sinkronisasi harga:", e); 
+            }
         }
-      }
 
-      if (lastLow && !lastLow.broken && c[i].c < lastLow.price) {
-        events.push({ type: trend === 'BULLISH' ? 'CHoCH' : 'BOS', dir: 'BEARISH', level: lastLow.price, i });
-        trend = 'BEARISH';
-        lastLow.broken = true;
-        for (let j = i - 1; j >= Math.max(0, i - 15); j--) {
-          if (c[j].c > c[j].o) { obs.push({ dir: 'BEARISH', top: c[j].h, bottom: c[j].l, i: j, breakIdx: i, mitigated: false, invalid: false }); break; }
+        async function requestOpenAIAnalysis() {
+            let price = document.getElementById('input-price').value;
+            let mode = document.getElementById('trading-mode').value;
+            if(!price) { alert("Masukkan atau sinkronkan harga terlebih dahulu!"); return; }
+
+            document.getElementById('reason-content').innerHTML = `🤖 Menganalisis struktur Order Block & FVG untuk mode <b>${mode.toUpperCase()}</b> via AI...`;
+
+            try {
+                let response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ price: price, mode: mode })
+                });
+                let result = await response.json();
+
+                document.getElementById('reason-content').innerHTML = `<b>Analisis Struktur SMC (${mode.toUpperCase()}):</b><br>${result.analysis}`;
+                document.getElementById('val-sl').innerText = result.sl;
+                document.getElementById('val-tp1').innerText = result.tp1;
+                document.getElementById('val-tp2').innerText = result.tp2;
+                document.getElementById('val-tp3').innerText = result.tp3;
+                document.getElementById('setup-mode-badge').innerText = result.setupMode;
+
+                let base = parseFloat(price);
+                let entryPrice = parseFloat(result.entryPrice).toFixed(2);
+
+                document.getElementById('zone-range').innerText = entryPrice;
+                document.getElementById('zone-title').innerHTML = `<span class="text-emerald-400">TITIK ENTRY BUY (SUPPORT/OB)</span>`;
+                document.getElementById('zone-status-text').innerText = `Tervalidasi Berdasarkan Struktur Chart`;
+
+                document.getElementById('map-sl-val').innerText = result.sl;
+                document.getElementById('map-live-price').innerText = base.toFixed(2);
+                document.getElementById('map-tp1').innerText = result.tp1;
+                document.getElementById('map-tp2').innerText = result.tp2;
+                document.getElementById('map-tp3').innerText = result.tp3;
+                
+                document.getElementById('map-entry-text').innerHTML = `<span class="text-emerald-400 font-bold">TITIK ENTRY: ${entryPrice}</span>`;
+
+            } catch (err) {
+                alert("Gagal melakukan analisis struktur.");
+            }
         }
-      }
-    }
 
-    for (const ob of obs) {
-      for (let j = ob.breakIdx + 1; j < c.length; j++) {
-        if (ob.dir === 'BULLISH') {
-          if (c[j].c < ob.bottom) { ob.invalid = true; break; }
-          if (c[j].l <= ob.top) ob.mitigated = true;
-        } else {
-          if (c[j].c > ob.top) { ob.invalid = true; break; }
-          if (c[j].h >= ob.bottom) ob.mitigated = true;
+        function logoutUser() {
+            localStorage.removeItem('user_email');
+            window.location.href = 'index.html';
         }
-      }
-    }
-
-    return {
-      trend, events,
-      lastEvent: events[events.length - 1] || null,
-      swingHigh: highs[highs.length - 1] || null,
-      swingLow: lows[lows.length - 1] || null,
-      bullOB: obs.filter(o => o.dir === 'BULLISH' && !o.invalid).pop() || null,
-      bearOB: obs.filter(o => o.dir === 'BEARISH' && !o.invalid).pop() || null
-    };
-  }
-
-  function findFVG(c, minSize = 0) {
-    const out = [];
-    for (let i = 2; i < c.length; i++) {
-      if (c[i].l - c[i - 2].h > minSize) out.push({ dir: 'BULLISH', top: c[i].l, bottom: c[i - 2].h, i: i - 1 });
-      if (c[i - 2].l - c[i].h > minSize) out.push({ dir: 'BEARISH', top: c[i - 2].l, bottom: c[i].h, i: i - 1 });
-    }
-    for (const g of out) {
-      g.filled = false;
-      for (let j = g.i + 2; j < c.length; j++) {
-        if (g.dir === 'BULLISH' && c[j].l <= g.bottom) { g.filled = true; break; }
-        if (g.dir === 'BEARISH' && c[j].h >= g.top) { g.filled = true; break; }
-      }
-    }
-    return out.filter(g => !g.filled).slice(-3);
-  }
-
-  function analyzeTF(c) {
-    const closes = c.map(x => x.c);
-    const price = closes[closes.length - 1];
-    const st = analyzeStructure(c);
-    const rsiV = rsi(closes, 14);
-    const ema20 = ema(closes, 20);
-    const ema50 = ema(closes, 50);
-    const atrV = atr(c, 14);
-    const fvg = findFVG(c, atrV ? atrV * 0.1 : 0);
-
-    let zone = 'UNKNOWN', zonePct = null;
-    if (st.swingHigh && st.swingLow && st.swingHigh.price > st.swingLow.price) {
-      zonePct = (price - st.swingLow.price) / (st.swingHigh.price - st.swingLow.price);
-      zone = zonePct > 0.55 ? 'PREMIUM' : zonePct < 0.45 ? 'DISCOUNT' : 'EQUILIBRIUM';
-    }
-
-    let score = 0;
-    if (st.trend === 'BULLISH') score += 2;
-    if (st.trend === 'BEARISH') score -= 2;
-    if (st.lastEvent?.type === 'CHoCH') score += st.lastEvent.dir === 'BULLISH' ? 1 : -1;
-    if (ema20 != null) score += price > ema20 ? 1 : -1;
-    if (ema50 != null) score += price > ema50 ? 1 : -1;
-    if (rsiV != null) { if (rsiV > 55) score += 1; else if (rsiV < 45) score -= 1; }
-    if (zone === 'DISCOUNT' && st.trend === 'BULLISH') score += 1;
-    if (zone === 'PREMIUM' && st.trend === 'BEARISH') score -= 1;
-
-    return { ready: true, candles: c.length, price, ...st, rsi: rsiV, ema20, ema50, atr: atrV, zone, zonePct, fvg, score };
-  }
-
-  function toRecommendation(score) {
-    if (score >= 8) return 'STRONG_BUY';
-    if (score >= 3) return 'BUY';
-    if (score <= -8) return 'STRONG_SELL';
-    if (score <= -3) return 'SELL';
-    return 'NEUTRAL';
-  }
-
-  // ================= State =================
-  let m1 = loadJSON(CONFIG.storageKey, []);
-  let lastPrice = m1.length ? m1[m1.length - 1].c : null;
-  let mode = 'intraday';
-  let state = null;
-  let lastSignal = null;
-
-  function loadJSON(key, def) {
-    try { return JSON.parse(localStorage.getItem(key)) ?? def; } catch { return def; }
-  }
-  function saveJSON(key, val) {
-    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { console.warn('Gagal simpan:', e); }
-  }
-
-  // ================= Ambil harga =================
-  async function fetchPrice() {
-    for (const url of CONFIG.priceUrls) {
-      try {
-        const r = await fetch(url, { cache: 'no-store' });
-        if (!r.ok) continue;
-        const d = await r.json();
-        const p = parseFloat(d?.price);
-        if (isFinite(p) && p > 0) return p;
-      } catch (e) { /* coba URL berikutnya */ }
-    }
-    throw new Error('Semua sumber harga gagal');
-  }
-
-  async function tick() {
-    try {
-      const p = await fetchPrice();
-      addTick(p, Date.now());
-      lastPrice = p;
-      $('liveDot').classList.remove('off');
-      $('liveText').textContent = 'Live · ' + new Date().toLocaleTimeString('id-ID');
-      update();
-    } catch (e) {
-      $('liveDot').classList.add('off');
-      $('liveText').textContent = 'Gagal mengambil harga, mencoba lagi...';
-    }
-  }
-
-  function addTick(p, t) {
-    const start = Math.floor(t / 60000) * 60000;
-    const last = m1[m1.length - 1];
-    if (last && last.t === start) {
-      last.h = Math.max(last.h, p);
-      last.l = Math.min(last.l, p);
-      last.c = p;
-    } else {
-      m1.push({ t: start, o: last ? last.c : p, h: Math.max(p, last ? last.c : p), l: Math.min(p, last ? last.c : p), c: p });
-      if (m1.length > CONFIG.maxM1) m1.splice(0, m1.length - CONFIG.maxM1);
-    }
-    saveJSON(CONFIG.storageKey, m1);
-  }
-
-  // ================= Analisa widget =================
-  function update() {
-    const [ltf, htf] = MODE_TF[mode];
-    const tfs = {}, series = {};
-    for (const tf of [ltf, htf]) {
-      const c = aggregate(m1, TF_MIN[tf]).slice(-300);
-      series[tf] = c;
-      tfs[tf] = c.length >= CONFIG.minCandles ? analyzeTF(c) : { ready: false, candles: c.length };
-    }
-
-    const readyCount = Object.values(tfs).filter(t => t.ready).length;
-    const dataQuality = readyCount === 2 ? 'FULL' : readyCount === 1 ? 'PARTIAL' : 'INSUFFICIENT';
-
-    let score = 0;
-    if (tfs[ltf].ready) score += tfs[ltf].score * 1.0;
-    if (tfs[htf].ready) score += tfs[htf].score * 1.5;
-    score = Math.round(score * 10) / 10;
-
-    const recommendation = dataQuality === 'INSUFFICIENT' ? 'NEUTRAL' : toRecommendation(score);
-    state = { price: lastPrice, mode, ltf, htf, tfs, score, recommendation, dataQuality };
-
-    paint(series[ltf], tfs[ltf]);
-    $('btnAnalyze').disabled = !lastPrice;
-  }
-
-  function getAnalysis() {
-    if (!state) return null;
-    const ob = o => o ? { top: round(o.top), bottom: round(o.bottom), mitigated: o.mitigated } : null;
-    const timeframes = {};
-    for (const tf of [state.ltf, state.htf]) {
-      const r = state.tfs[tf];
-      if (!r.ready) continue;
-      timeframes[tf] = {
-        trend: r.trend,
-        lastEvent: r.lastEvent ? `${r.lastEvent.type} ${r.lastEvent.dir} @ ${fmt(r.lastEvent.level)}` : null,
-        swingHigh: round(r.swingHigh?.price),
-        swingLow: round(r.swingLow?.price),
-        zone: r.zone,
-        zonePct: round(r.zonePct, 2),
-        bullOB: ob(r.bullOB),
-        bearOB: ob(r.bearOB),
-        fvg: r.fvg.map(g => ({ dir: g.dir, top: round(g.top), bottom: round(g.bottom) })),
-        ema20: round(r.ema20),
-        ema50: round(r.ema50),
-        rsi: round(r.rsi, 1),
-        atr: round(r.atr),
-        score: r.score
-      };
-    }
-    return {
-      price: round(state.price),
-      mode: state.mode,
-      entryTF: state.ltf,
-      recommendation: state.recommendation,
-      score: state.score,
-      dataQuality: state.dataQuality,
-      timeframes
-    };
-  }
-
-  // ================= Tampilan widget =================
-  function paint(ltfCandles, ltfRes) {
-    const s = state;
-    $('price').textContent = s.price ? `$${fmt(s.price)}` : '-';
-
-    const rec = $('rec');
-    rec.textContent = s.dataQuality === 'INSUFFICIENT'
-      ? 'MENGUMPULKAN DATA'
-      : `${s.recommendation.replace('_', ' ')} (skor ${s.score})`;
-    rec.className = 'smc-rec' + (s.recommendation.includes('BUY') ? ' buy' : s.recommendation.includes('SELL') ? ' sell' : '');
-
-    const prog = [s.ltf, s.htf].map(tf => `${tf}: ${Math.min(s.tfs[tf].candles, CONFIG.minCandles)}/${CONFIG.minCandles}`).join(' · ');
-    $('status').textContent = `Data: ${s.dataQuality} · ${prog} candle · M1 tersimpan: ${m1.length}`;
-
-    const pct = [s.ltf, s.htf].reduce((a, tf) => a + Math.min(s.tfs[tf].candles, CONFIG.minCandles), 0) / (CONFIG.minCandles * 2) * 100;
-    $('progressBar').style.width = pct + '%';
-    $('chartTF').textContent = `Chart: ${s.ltf}`;
-
-    $('tfs').innerHTML = [s.ltf, s.htf].map(tf => cardHTML(tf, s.tfs[tf])).join('');
-    draw(ltfCandles, ltfRes);
-  }
-
-  function cardHTML(tf, r) {
-    if (!r.ready) return `<div class="smc-card"><h4>${tf}</h4><span class="muted">Mengumpulkan data... (${r.candles}/${CONFIG.minCandles})</span></div>`;
-    const cls = r.trend === 'BULLISH' ? 'bull' : r.trend === 'BEARISH' ? 'bear' : '';
-    const ev = r.lastEvent ? `${r.lastEvent.type} ${r.lastEvent.dir} @ ${fmt(r.lastEvent.level)}` : '-';
-    const ob = o => o ? `${fmt(o.bottom)} - ${fmt(o.top)}${o.mitigated ? ' (mitigated)' : ''}` : '-';
-    const fvg = r.fvg.length
-      ? r.fvg.map(g => `<span class="${g.dir === 'BULLISH' ? 'bull' : 'bear'}">${fmt(g.bottom)}-${fmt(g.top)}</span>`).join(', ')
-      : '-';
-    const row = (k, v) => `<div class="smc-row"><span>${k}</span><span>${v}</span></div>`;
-    return `<div class="smc-card"><h4>${tf} <span class="${cls}">${r.trend}</span></h4>
-      ${row('Event terakhir', ev)}
-      ${row('Swing High / Low', `${fmt(r.swingHigh?.price)} / ${fmt(r.swingLow?.price)}`)}
-      ${row('Zona', `${r.zone}${r.zonePct != null ? ' (' + Math.round(r.zonePct * 100) + '%)' : ''}`)}
-      ${row('Bullish OB', `<span class="bull">${ob(r.bullOB)}</span>`)}
-      ${row('Bearish OB', `<span class="bear">${ob(r.bearOB)}</span>`)}
-      ${row('FVG aktif', fvg)}
-      ${row('EMA20 / EMA50', `${fmt(r.ema20)} / ${fmt(r.ema50)}`)}
-      ${row('RSI 14 / ATR 14', `${fmt(r.rsi, 1)} / ${fmt(r.atr)}`)}
-      ${row('Skor TF', r.score)}
-    </div>`;
-  }
-
-  function draw(c, r) {
-    const cv = $('chart');
-    const ctx = cv.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    const w = cv.clientWidth || 600, h = 240;
-    cv.width = w * dpr; cv.height = h * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-
-    const data = (c || []).slice(-60);
-    if (!data.length) {
-      ctx.fillStyle = '#8b98a9';
-      ctx.font = '13px system-ui';
-      ctx.fillText('Menunggu data harga...', 12, 24);
-      return;
-    }
-    const offset = c.length - data.length;
-    let hi = Math.max(...data.map(x => x.h));
-    let lo = Math.min(...data.map(x => x.l));
-    const pad = (hi - lo) * 0.1 || 1;
-    hi += pad; lo -= pad;
-    const y = p => h - ((p - lo) / (hi - lo)) * h;
-    const cw = w / data.length;
-
-    const zone = (z, color) => {
-      if (!z || z.top < lo || z.bottom > hi) return;
-      const x0 = Math.max(0, (z.i - offset) * cw);
-      ctx.fillStyle = color;
-      ctx.fillRect(x0, y(z.top), w - x0, Math.max(1, y(z.bottom) - y(z.top)));
-    };
-
-    if (r?.ready) {
-      zone(r.bullOB, 'rgba(74,222,128,0.18)');
-      zone(r.bearOB, 'rgba(248,113,113,0.18)');
-      r.fvg.forEach(g => zone(g, 'rgba(96,165,250,0.15)'));
-      ctx.setLineDash([4, 4]);
-      ctx.lineWidth = 1;
-      if (r.swingHigh) { ctx.strokeStyle = '#f87171'; ctx.beginPath(); ctx.moveTo(0, y(r.swingHigh.price)); ctx.lineTo(w, y(r.swingHigh.price)); ctx.stroke(); }
-      if (r.swingLow) { ctx.strokeStyle = '#4ade80'; ctx.beginPath(); ctx.moveTo(0, y(r.swingLow.price)); ctx.lineTo(w, y(r.swingLow.price)); ctx.stroke(); }
-      ctx.setLineDash([]);
-    }
-
-    data.forEach((k, i) => {
-      const x = i * cw + cw / 2;
-      const up = k.c >= k.o;
-      ctx.strokeStyle = ctx.fillStyle = up ? '#4ade80' : '#f87171';
-      ctx.beginPath(); ctx.moveTo(x, y(k.h)); ctx.lineTo(x, y(k.l)); ctx.stroke();
-      const top = y(Math.max(k.o, k.c)), bot = y(Math.min(k.o, k.c));
-      ctx.fillRect(x - cw * 0.35, top, cw * 0.7, Math.max(1, bot - top));
-    });
-
-    const last = data[data.length - 1].c;
-    ctx.strokeStyle = '#facc15';
-    ctx.beginPath(); ctx.moveTo(0, y(last)); ctx.lineTo(w, y(last)); ctx.stroke();
-    ctx.fillStyle = '#facc15';
-    ctx.font = '11px system-ui';
-    ctx.fillText(fmt(last), w - 60, y(last) - 4);
-  }
-
-  // ================= Analisa AI =================
-  async function analyze() {
-    const btn = $('btnAnalyze');
-    const analysis = getAnalysis();
-    if (!analysis?.price) return alert('Harga belum tersedia.');
-
-    btn.disabled = true;
-    btn.textContent = '⏳ Menganalisa...';
-    try {
-      const res = await fetch(CONFIG.analyzeUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ price: analysis.price, mode: analysis.mode, widget: analysis })
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.error || 'Gagal analisa');
-
-      showSignal(d);
-      addHistory(d);
-    } catch (e) {
-      alert('Error: ' + e.message);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '🔍 Analisa Sekarang';
-    }
-  }
-
-  function showSignal(d) {
-    lastSignal = d;
-    const dir = ['BUY', 'SELL'].includes(d.direction) ? d.direction : 'WAIT';
-    $('signal').style.display = 'block';
-    $('sigDir').className = 'badge ' + dir;
-    $('sigDir').textContent = dir;
-    $('sigMode').textContent = d.setupMode || '';
-    $('sigText').textContent = d.analysis || '-';   // textContent agar aman dari HTML injection
-    $('lvEntry').textContent = d.entryPrice;
-    $('lvSL').textContent = d.sl;
-    $('lvPrice').textContent = d.price;
-    $('lvTP1').textContent = d.tp1;
-    $('lvTP2').textContent = d.tp2;
-    $('lvTP3').textContent = d.tp3;
-    $('sigMeta').textContent =
-      `Sinyal widget: ${d.recommendation || '-'} · Data: ${d.dataQuality || '-'} · Sumber: ${d.source || '-'} · ${new Date().toLocaleString('id-ID')}`;
-    $('btnCopy').disabled = false;
-  }
-
-  function addHistory(d) {
-    const list = loadJSON(CONFIG.historyKey, []);
-    list.unshift({
-      time: new Date().toLocaleString('id-ID'),
-      mode: d.setupMode, direction: d.direction,
-      entry: d.entryPrice, sl: d.sl, tp1: d.tp1, price: d.price
-    });
-    saveJSON(CONFIG.historyKey, list.slice(0, 10));
-    renderHistory();
-  }
-
-  function renderHistory() {
-    const list = loadJSON(CONFIG.historyKey, []);
-    const box = $('history');
-    if (!list.length) { box.innerHTML = '<div class="muted" style="font-size:12px">Belum ada sinyal.</div>'; return; }
-    box.innerHTML = '';
-    list.forEach(h => {
-      const el = document.createElement('div');
-      el.className = 'history-item';
-      const cls = h.direction === 'BUY' ? 'bull' : h.direction === 'SELL' ? 'bear' : 'muted';
-      el.innerHTML = `<span class="muted"></span><span class="${cls}"></span>`;
-      el.children[0].textContent = h.time;
-      el.children[1].textContent = h.direction === 'WAIT'
-        ? `WAIT @ ${h.price}`
-        : `${h.direction} ${h.entry} | SL ${h.sl} | TP1 ${h.tp1}`;
-      box.appendChild(el);
-    });
-  }
-
-  function copySignal() {
-    if (!lastSignal) return;
-    const d = lastSignal;
-    const text =
-`📊 XAU/USD ${d.setupMode}
-Arah: ${d.direction}
-Harga: ${d.price}
-Entry: ${d.entryPrice}
-SL: ${d.sl}
-TP1: ${d.tp1}
-TP2: ${d.tp2}
-TP3: ${d.tp3}
-
-${d.analysis}`;
-    navigator.clipboard.writeText(text)
-      .then(() => { $('btnCopy').textContent = '✅ Tersalin'; setTimeout(() => $('btnCopy').textContent = '📋 Salin Sinyal', 1500); })
-      .catch(() => alert('Gagal menyalin'));
-  }
-
-  // ================= Event =================
-  $('mode').onchange = e => { mode = e.target.value; update(); };
-  $('btnAnalyze').onclick = analyze;
-  $('btnCopy').onclick = copySignal;
-  $('btnReset').onclick = () => {
-    if (!confirm('Hapus semua data candle yang sudah terkumpul?')) return;
-    m1 = [];
-    localStorage.removeItem(CONFIG.storageKey);
-    update();
-  };
-  let resizeTimer;
-  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(update, 200); });
-
-  // ================= Start =================
-  renderHistory();
-  update();
-  tick();
-  setInterval(tick, CONFIG.pollMs);
-})();
-</script>
+    </script>
 </body>
 </html>
