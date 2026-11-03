@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XAU/USD SMC Analyzer</title>
+  <style>
+    body { background:#070a0f; color:#e6e9ef; font-family:system-ui,sans-serif; padding:20px; }
+    .wrap { max-width:760px; margin:auto; }
+    button { margin-top:12px; width:100%; padding:12px; border:0; border-radius:8px;
+             background:#facc15; color:#111; font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    #result { margin-top:12px; background:#0f141c; border:1px solid #1f2a37; border-radius:12px;
+              padding:16px; white-space:pre-line; display:none; }
+    .lv { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px; }
+    .lv div { background:#141b26; padding:8px; border-radius:8px; text-align:center; font-size:13px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="smc"></div>
+    <button id="btnAnalyze">🔍 Analisa AI (SMC)</button>
+    <div id="result"></div>
+  </div>
+
+  <script src="/smc-widget.js"></script>
+  <script>
+    const widget = new SMCWidget('#smc', {
+      mode: 'intraday',
+      pollMs: 10000,
+      onUpdate: (a) => {
+        document.getElementById('btnAnalyze').disabled = !a || !a.price;
+      }
+    });
+
+    document.getElementById('btnAnalyze').onclick = async () => {
+      const btn = document.getElementById('btnAnalyze');
+      const box = document.getElementById('result');
+      const analysis = widget.getAnalysis();
+      if (!analysis?.price) return alert('Harga belum tersedia.');
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Menganalisa...';
+      try {
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ price: analysis.price, mode: analysis.mode, widget: analysis })
+        });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error || 'Gagal analisa');
+
+        box.style.display = 'block';
+        box.innerHTML = `
+          <b>${d.setupMode}</b> · Harga $${d.price}
+          <p>${d.analysis}</p>
+          <div class="lv">
+            <div>Entry<br><b>${d.entryPrice}</b></div>
+            <div>SL<br><b style="color:#f87171">${d.sl}</b></div>
+            <div>TP1<br><b style="color:#4ade80">${d.tp1}</b></div>
+            <div>TP2<br><b style="color:#4ade80">${d.tp2}</b></div>
+            <div>TP3<br><b style="color:#4ade80">${d.tp3}</b></div>
+            <div>Data<br><b>${analysis.dataQuality}</b></div>
+          </div>`;
+      } catch (e) {
+        alert('Error: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Analisa AI (SMC)';
+      }
+    };
+  </script>
+</body>
+</html>
