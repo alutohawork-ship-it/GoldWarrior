@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
     let currentPrice = parseFloat(price);
 
-    // Jika harga dari request kosong, coba ambil langsung dari Gold API publik
+    // Jika harga dari request kosong, ambil langsung dari Gold API publik
     if (!currentPrice || isNaN(currentPrice)) {
         try {
             const goldRes = await fetch('https://api.gold-api.com/price/XAU/USD');
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
                 currentPrice = parseFloat(goldData.price);
             }
         } catch (e) {
-            currentPrice = 3950.00; // Harga fallback aman jika jaringan luar gagal
+            currentPrice = 3950.00; // Harga fallback aman
         }
     }
 
@@ -25,20 +25,16 @@ export default async function handler(req, res) {
     if (mode === 'scalping') tfGuide = "M1 + M5 (Scalping)";
     if (mode === 'swing') tfGuide = "H1 + H4 (Swing)";
 
-    // Tentukan struktur order block berdasarkan mode (jarak pip/poin disesuaikan time frame)
     let spreadOffset = mode === 'scalping' ? 2.5 : (mode === 'swing' ? 12.0 : 5.0);
 
-    // Logika penentuan struktur area entry (Buy di bawah harga live / Diskon, Sell di atas harga live / Premium)
-    // Asumsi default setup Bullish Order Block / Support Structure yang logis
     let entryPrice = currentPrice - (spreadOffset * 0.4);
     let sl = entryPrice - (spreadOffset * 1.5);
     let tp1 = currentPrice + (spreadOffset * 1.0);
     let tp2 = currentPrice + (spreadOffset * 2.0);
     let tp3 = currentPrice + (spreadOffset * 3.5);
 
-    let analysisText = `Analisis struktur Smart Money Concept (SMC) menggunakan kombinasi Time Frame ${tfGuide}. Harga terdeteksi di sekitar $${currentPrice.toFixed(2)}. Area Order Block (OB) valid teridentifikasi di kisaran $${entryPrice.toFixed(2)} dengan proteksi Stop Loss di bawah swing low pada level $${sl.toFixed(2)}. Target likuiditas bertahap dipetakan menuju TP1 ($${tp1.toFixed(2)}), TP2 ($${tp2.toFixed(2)}), dan TP3 ($${tp3.toFixed(2)}) setelah konfirmasi mitigasi FVG.`;
+    let analysisText = `Analisis struktur Smart Money Concept (SMC) menggunakan kombinasi Time Frame ${tfGuide}. Harga terdeteksi di sekitar $${currentPrice.toFixed(2)}. Area Order Block (OB) valid teridentifikasi di kisaran $${entryPrice.toFixed(2)} dengan proteksi Stop Loss di bawah swing low pada level $${sl.toFixed(2)}. Target likuiditas bertahap dipetakan menuju TP1 ($${tp1.toFixed(2)}), TP2 ($${tp2.toFixed(2)}), dan TP3 ($${tp3.toFixed(2)}).`;
 
-    // Jika OpenAI API Key tersedia, gunakan AI untuk memperkaya narasi analisis strukturnya
     if (openaiApiKey) {
         try {
             const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Institutional Trader profesional untuk XAU/USD. 
@@ -69,6 +65,7 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json({
+        status: "SETUP",
         analysis: analysisText,
         entryPrice: entryPrice.toFixed(2),
         sl: sl.toFixed(2),
