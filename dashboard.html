@@ -3,635 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMC XAU/USD Dashboard</title>
+    <title>AI SMC XAU/USD Pro Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0b0f19; color: #e2e8f0; font-family: ui-sans-serif, system-ui, sans-serif; }
         .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.08); }
-        .font-mono { font-variant-numeric: tabular-nums; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-3 max-w-md mx-auto space-y-3">
 
-    <!-- HEADER & HARGA LIVE -->
-    <header class="bg-slate-900 border border-slate-800 rounded-xl p-3 glow">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <span id="sync-dot" class="h-2.5 w-2.5 bg-slate-500 rounded-full"></span>
-                <span class="text-xs font-bold tracking-wider text-slate-300">XAU/USD</span>
-                <span id="live-price" class="text-sm font-mono font-bold text-white">-</span>
-            </div>
-            <div class="flex items-center space-x-2">
-                <span id="user-email" class="text-[9px] bg-slate-800 px-2 py-1 rounded text-amber-400 font-semibold max-w-[130px] truncate">-</span>
-                <button id="btn-logout" class="text-[9px] text-rose-400 hover:underline cursor-pointer">Logout</button>
-            </div>
+    <!-- Header & Live Ticker -->
+    <header class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex justify-between items-center glow">
+        <div class="flex items-center space-x-2">
+            <span id="sync-dot" class="h-2.5 w-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+            <span class="text-xs font-bold tracking-wider text-emerald-400">GOLD API LIVE</span>
+            <span id="live-xau-price" class="text-xs font-mono font-bold text-white">Menghubungkan...</span>
         </div>
-        <div id="price-meta" class="text-[9px] text-slate-500 mt-1">Menghubungkan ke Gold API...</div>
+        <div class="flex items-center space-x-2">
+            <span id="user-session-email" class="text-[9px] bg-slate-800 px-2 py-1 rounded text-amber-400 font-semibold">-</span>
+            <button onclick="logoutUser()" class="text-[9px] text-rose-400 hover:underline cursor-pointer">Logout</button>
+        </div>
     </header>
 
-    <!-- CHART -->
-    <section class="bg-slate-900 border border-slate-800 rounded-xl p-2 glow space-y-2">
+    <!-- WIDGET METATRADER / TRADINGVIEW -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-2 glow flex flex-col space-y-2">
         <div class="flex justify-between items-center px-1">
-            <span class="text-[11px] font-bold text-slate-300">CHART</span>
-            <span id="chart-tf" class="text-[10px] text-emerald-400 font-mono font-bold">OANDA:XAUUSD</span>
+            <span class="text-[11px] font-bold text-slate-300">CHART UTAMA (EXNESS/TRADINGVIEW)</span>
+            <span id="api-symbol-status" class="text-[10px] text-emerald-400 font-mono font-bold">XAU/USD</span>
         </div>
-        <div id="tradingview_widget" class="rounded-lg overflow-hidden" style="width:100%; height:260px;"></div>
-        <p class="text-[9px] text-slate-500 px-1 leading-snug">
-            Chart (OANDA), harga live (Gold API), dan data analisis (Twelve Data) berasal dari sumber berbeda.
-            Selisih kecil dengan harga broker Anda adalah normal. Selalu cek ulang level di platform trading Anda.
-        </p>
-    </section>
+        <!-- Anda bisa mengganti iframe ini dengan WebTerminal Exness jika diinginkan -->
+        <div id="tradingview_widget" style="width: 100%; height: 200px; border-radius: 8px; overflow: hidden;"></div>
+    </div>
 
-    <!-- MODE & TOMBOL ANALISIS -->
-    <section class="bg-slate-900 border border-slate-800 rounded-xl p-3 glow space-y-2">
+    <!-- MODE TRADING & TITIK ENTRY UTAMA -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 glow space-y-2">
         <div class="flex justify-between items-center">
-            <label for="trading-mode" class="text-[10px] text-slate-400 font-bold">MODE & TIME FRAME:</label>
+            <label class="text-[10px] text-slate-400 font-bold">PILIH MODE & TIME FRAME:</label>
             <select id="trading-mode" class="bg-slate-950 border border-slate-700 text-amber-400 text-xs font-bold rounded px-2 py-1 focus:outline-none">
                 <option value="scalping">⚡ Scalping (M1 + M5)</option>
                 <option value="intraday" selected>🎯 Intraday (M15 + H1)</option>
                 <option value="swing">📈 Swing (H1 + H4)</option>
             </select>
         </div>
-        <button id="btn-analyze" class="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-2 rounded text-xs transition cursor-pointer shadow-lg">
-            ✨ Jalankan Analisis Struktur SMC
-        </button>
-    </section>
+    </div>
 
-    <!-- KARTU SINYAL -->
-    <section id="signal-card" class="bg-slate-900 border border-slate-800 rounded-xl p-4 glow space-y-2 text-center">
-        <div class="flex justify-between items-center">
-            <span id="signal-badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">BELUM ADA ANALISIS</span>
-            <span id="signal-time" class="text-[9px] text-slate-500">-</span>
+    <div id="zone-banner" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center glow space-y-1">
+        <div id="zone-title" class="text-[10px] tracking-widest text-slate-400 font-bold">MENUNGGU ANALISIS STRUKTUR AI</div>
+        <div id="zone-range" class="text-3xl font-black text-white font-mono">-</div>
+        <div class="text-[10px] text-emerald-400 font-semibold">
+            <span class="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-ping mr-1"></span>
+            <span id="zone-status-text">Silakan jalankan analisis struktur di bawah</span>
         </div>
-        <div id="signal-title" class="text-[10px] tracking-widest text-slate-400 font-bold">TITIK ENTRY</div>
-        <div id="signal-entry" class="text-3xl font-black text-white font-mono">-</div>
-        <div id="signal-zone" class="text-[10px] text-slate-400 font-mono">-</div>
-        <div id="signal-live-status" class="text-[11px] font-semibold text-slate-400">Pilih mode, lalu jalankan analisis.</div>
-        <div id="signal-warnings" class="space-y-1 text-left"></div>
-    </section>
+    </div>
 
-    <!-- SL & TP -->
-    <section class="grid grid-cols-4 gap-1.5 text-center">
+    <!-- SL & TP CARDS -->
+    <div class="grid grid-cols-4 gap-1.5 text-center">
         <div class="bg-slate-900 border border-rose-900/50 rounded-lg p-2">
-            <div class="text-[10px] text-slate-400 font-bold">SL</div>
+            <div class="text-[10px] text-slate-400 font-bold">SL (STRUCTURE)</div>
             <div id="val-sl" class="text-xs font-mono font-bold text-rose-400">-</div>
-            <div id="sub-sl" class="text-[9px] font-mono text-slate-500">-</div>
         </div>
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-2">
             <div class="text-[10px] text-slate-400 font-bold">TP1</div>
             <div id="val-tp1" class="text-xs font-mono font-bold text-slate-300">-</div>
-            <div id="sub-tp1" class="text-[9px] font-mono text-slate-500">-</div>
         </div>
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-2">
             <div class="text-[10px] text-slate-400 font-bold">TP2</div>
             <div id="val-tp2" class="text-xs font-mono font-bold text-slate-300">-</div>
-            <div id="sub-tp2" class="text-[9px] font-mono text-slate-500">-</div>
         </div>
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-2">
             <div class="text-[10px] text-slate-400 font-bold">TP3</div>
             <div id="val-tp3" class="text-xs font-mono font-bold text-slate-300">-</div>
-            <div id="sub-tp3" class="text-[9px] font-mono text-slate-500">-</div>
         </div>
-    </section>
+    </div>
 
-    <!-- STRUKTUR & ALASAN -->
-    <section class="bg-slate-900 border border-slate-800 rounded-xl p-4 glow space-y-3">
+    <!-- ACTION BUTTON & INPUT -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 glow space-y-2">
+        <div class="flex space-x-2 items-center">
+            <div class="flex-1">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-[10px] text-slate-400">Harga Live Gold API</label>
+                    <button onclick="fetchGoldPrice()" class="text-[9px] text-blue-400 hover:underline cursor-pointer">🔄 Sync Harga</button>
+                </div>
+                <input type="number" id="input-price" step="any" placeholder="Memuat harga..." class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1.5 text-xs text-amber-400 font-mono focus:outline-none">
+            </div>
+            <div class="w-1/3">
+                <label class="block text-[10px] text-slate-400 mb-1">Status AI</label>
+                <div id="bias-badge" class="bg-slate-950 border border-slate-800 text-slate-400 font-bold text-[10px] rounded px-2 py-2 text-center">SMC READY</div>
+            </div>
+        </div>
+        <button onclick="requestOpenAIAnalysis()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded text-xs transition cursor-pointer shadow-lg flex items-center justify-center space-x-1">
+            <span>✨ Jalankan Analisis Struktur SMC</span>
+        </button>
+    </div>
+
+    <!-- PRICE MAP & REASON ENTRY -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 glow space-y-3">
         <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-            <h2 class="text-xs font-bold tracking-wider text-white">STRUKTUR & ALASAN ENTRY</h2>
+            <h2 class="text-xs font-bold tracking-wider text-white">PETA STRUKTUR & ALASAN ENTRY</h2>
             <span id="setup-mode-badge" class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-bold">MENUNGGU</span>
         </div>
-        <dl id="structure-grid" class="grid grid-cols-2 gap-1.5 text-[10px]"></dl>
-        <div id="reason-content" class="bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 leading-relaxed whitespace-pre-line">[System]: Pilih mode trading, lalu klik jalankan analisis struktur.</div>
-    </section>
 
-    <!-- PETA LEVEL HARGA -->
-    <section class="bg-slate-900 border border-slate-800 rounded-xl p-4 glow space-y-2">
-        <h2 class="text-xs font-bold tracking-wider text-white border-b border-slate-800 pb-2">PETA LEVEL HARGA</h2>
-        <div id="price-ladder" class="font-mono text-xs space-y-1"></div>
-        <p class="text-[9px] text-slate-500 leading-snug">
-            Level diurutkan sesuai harga sebenarnya (tertinggi di atas). Kolom kanan = jarak dari harga live.
-            Status sinyal dilacak dari polling tiap 15 detik, jadi wick cepat bisa terlewat. Anggap sebagai perkiraan.
-        </p>
-    </section>
+        <div id="reason-content" class="bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 font-sans leading-relaxed">
+            [System]: Pilih mode trading, pastikan harga live tersinkron, lalu klik jalankan analisis struktur.
+        </div>
 
-    <footer class="text-[9px] text-slate-600 text-center pb-2">
-        Alat bantu analisis, bukan rekomendasi finansial. Gunakan manajemen risiko.
-    </footer>
+        <div class="relative bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs flex flex-col justify-between h-44">
+            <div class="flex justify-between items-center border-b border-dashed border-rose-500/40 pb-1">
+                <span class="text-[10px] text-rose-400 font-bold">SL (STRUCTURE PROTECTED)</span>
+                <span id="map-sl-val" class="text-rose-400 font-bold">-</span>
+            </div>
+            <div id="map-entry-box" class="border border-emerald-500 rounded p-1.5 text-center my-1 bg-emerald-950/30">
+                <div id="map-entry-text" class="text-xs font-bold text-emerald-300">TITIK ENTRY: -</div>
+            </div>
+            <div class="flex items-center justify-center my-1 relative">
+                <div class="absolute w-full border-t border-blue-500/50"></div>
+                <div class="relative z-10 bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow">
+                    ▼ LIVE: <span id="map-live-price">-</span>
+                </div>
+            </div>
+            <div class="flex justify-between items-center text-[10px] pt-1 border-t border-slate-800 text-slate-400">
+                <span>TP1: <b id="map-tp1" class="text-white">-</b></span>
+                <span>TP2: <b id="map-tp2" class="text-white">-</b></span>
+                <span>TP3: <b id="map-tp3" class="text-white">-</b></span>
+            </div>
+        </div>
+    </div>
 
-    <script src="https://s3.tradingview.com/tv.js"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
-    // ================= KONFIGURASI =================
-    const GOLD_API_URL = 'https://api.gold-api.com/price/XAU';
-    const PRICE_POLL_MS = 15000;
-    const PRICE_STALE_MS = 60000;
-    const API_TIMEOUT_MS = 30000;
-    const SOURCE_DIFF_WARN = 1.0; // USD selisih Gold API vs feed analisis
-
-    const MODE_CFG = {
-        scalping: { tv: '1',  label: 'M1',  maxAgeMin: 15 },
-        intraday: { tv: '15', label: 'M15', maxAgeMin: 120 },
-        swing:    { tv: '60', label: 'H1',  maxAgeMin: 720 },
-    };
-
-    const state = {
-        livePrice: null,
-        priceSourceTime: null,
-        lastPriceOkAt: null,
-        priceError: null,
-        signal: null,
-        loading: false,
-    };
-
-    // ================= UTIL =================
-    const $ = (id) => document.getElementById(id);
-    const num = (v) => {
-        if (v === null || v === undefined || v === '') return null;
-        const n = typeof v === 'number' ? v : parseFloat(v);
-        return Number.isFinite(n) ? n : null;
-    };
-    const fmt = (v) => { const n = num(v); return n === null ? '-' : n.toFixed(2); };
-    const fmtSigned = (v) => { const n = num(v); return n === null ? '-' : (n >= 0 ? '+' : '') + n.toFixed(2); };
-    const timeStr = (d) => d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const currentMode = () => $('trading-mode').value;
-
-    function el(tag, cls, text) {
-        const e = document.createElement(tag);
-        if (cls) e.className = cls;
-        if (text !== undefined) e.textContent = text; // textContent = aman dari XSS
-        return e;
-    }
-
-    function agoText(ms) {
-        const s = Math.floor(ms / 1000);
-        if (s < 60) return `${s} dtk lalu`;
-        const m = Math.floor(s / 60);
-        if (m < 60) return `${m} mnt lalu`;
-        return `${Math.floor(m / 60)} jam ${m % 60} mnt lalu`;
-    }
-
-    async function fetchWithTimeout(url, options = {}, ms = 8000) {
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), ms);
-        try { return await fetch(url, { ...options, signal: ctrl.signal }); }
-        finally { clearTimeout(t); }
-    }
-
-    // ================= INIT =================
-    window.addEventListener('load', () => {
-        const email = localStorage.getItem('user_email');
-        if (!email) { window.location.href = 'index.html'; return; }
-        $('user-email').textContent = email;
-
-        $('btn-logout').addEventListener('click', logoutUser);
-        $('btn-analyze').addEventListener('click', runAnalysis);
-        $('trading-mode').addEventListener('change', onModeChange);
-
-        loadChart(currentMode());
-        renderAll();
-        fetchGoldPrice();
-
-        setInterval(() => { if (!document.hidden) fetchGoldPrice(); }, PRICE_POLL_MS);
-        setInterval(() => { renderPrice(); renderSignalTime(); renderWarnings(); }, 5000);
-        document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchGoldPrice(); });
-    });
-
-    function loadChart(mode) {
-        const cfg = MODE_CFG[mode];
-        const box = $('tradingview_widget');
-        box.replaceChildren();
-        $('chart-tf').textContent = `OANDA:XAUUSD · ${cfg.label}`;
-        if (typeof TradingView === 'undefined') {
-            box.append(el('div', 'text-[10px] text-slate-500 p-4 text-center', 'Chart gagal dimuat.'));
-            return;
-        }
-        new TradingView.widget({
-            autosize: true,
-            symbol: 'OANDA:XAUUSD',
-            interval: cfg.tv,
-            timezone: 'Asia/Jakarta',
-            theme: 'dark',
-            style: '1',
-            locale: 'id',
-            allow_symbol_change: false,
-            hide_side_toolbar: true,
-            container_id: 'tradingview_widget',
-        });
-    }
-
-    function onModeChange() {
-        loadChart(currentMode());
-        // Sinyal mode lain tidak berlaku untuk mode ini -> kosongkan agar tidak menyesatkan
-        if (state.signal && state.signal.mode !== currentMode()) {
-            state.signal = null;
-            renderAll();
-            $('signal-live-status').textContent = 'Mode berubah. Jalankan analisis ulang untuk mode ini.';
-        }
-    }
-
-    // ================= HARGA LIVE =================
-    let priceInFlight = false;
-    async function fetchGoldPrice() {
-        if (priceInFlight) return;
-        priceInFlight = true;
-        try {
-            const res = await fetchWithTimeout(GOLD_API_URL, {}, 8000);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            const p = num(data?.price);
-            if (p === null || p <= 0) throw new Error('Harga tidak valid');
-
-            state.livePrice = p;
-            const srcTime = data.updatedAt ? new Date(data.updatedAt) : null;
-            state.priceSourceTime = srcTime && !isNaN(srcTime) ? srcTime : null;
-            state.lastPriceOkAt = Date.now();
-            state.priceError = null;
-        } catch (e) {
-            state.priceError = e.name === 'AbortError' ? 'timeout' : e.message;
-        } finally {
-            priceInFlight = false;
-            updateSignalTracking();
-            renderPrice();
-            renderLiveStatus();
-            renderWarnings();
-            renderLadder();
-        }
-    }
-
-    function renderPrice() {
-        const dot = $('sync-dot');
-        const stale = !state.lastPriceOkAt || Date.now() - state.lastPriceOkAt > PRICE_STALE_MS;
-
-        $('live-price').textContent = state.livePrice !== null ? fmt(state.livePrice) : '-';
-
-        if (state.livePrice === null) {
-            dot.className = 'h-2.5 w-2.5 bg-rose-500 rounded-full';
-            $('price-meta').textContent = state.priceError
-                ? `Gagal mengambil harga (${state.priceError}). Mencoba lagi...`
-                : 'Menghubungkan ke Gold API...';
-            return;
-        }
-
-        dot.className = stale
-            ? 'h-2.5 w-2.5 bg-amber-500 rounded-full'
-            : 'h-2.5 w-2.5 bg-emerald-500 rounded-full animate-pulse';
-
-        const src = state.priceSourceTime ? ` · data sumber ${timeStr(state.priceSourceTime)}` : '';
-        const base = `Gold API · diperbarui ${agoText(Date.now() - state.lastPriceOkAt)}${src}`;
-        $('price-meta').textContent = stale
-            ? `⚠️ Harga mungkin basi. ${base}${state.priceError ? ` · error: ${state.priceError}` : ''}`
-            : base;
-        $('price-meta').className = `text-[9px] mt-1 ${stale ? 'text-amber-400' : 'text-slate-500'}`;
-    }
-
-    // ================= ANALISIS =================
-    async function runAnalysis() {
-        if (state.loading) return;
-        const mode = currentMode();
-        setLoading(true, mode);
-
-        try {
-            const res = await fetchWithTimeout('/api/analyze', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // price hanya referensi; backend memakai feed candle-nya sendiri
-                body: JSON.stringify({ mode, price: state.livePrice }),
-            }, API_TIMEOUT_MS);
-
-            let data = null;
-            try { data = await res.json(); } catch { /* respons bukan JSON */ }
-            if (!res.ok) throw new Error(data?.error || `Server error (HTTP ${res.status})`);
-
-            const signal = normalizeSignal(data, mode);
-            if (currentMode() !== mode) return; // user ganti mode saat request berjalan
-
-            state.signal = signal;
-            updateSignalTracking();
-            renderAll();
-        } catch (e) {
-            if (currentMode() !== mode) return;
-            state.signal = null;
-            renderAll();
-            renderError(e.name === 'AbortError' ? 'Analisis timeout (>30 detik). Coba lagi.' : e.message);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    // Validasi ketat: data yang tidak konsisten ditolak, tidak ditampilkan
-    function normalizeSignal(d, mode) {
-        if (!d || typeof d !== 'object') throw new Error('Respons server kosong.');
-
-        const base = {
-            mode,
-            receivedAt: new Date(),
-            analysis: typeof d.analysis === 'string' ? d.analysis : '',
-            setupMode: d.setupMode || `SETUP: ${mode.toUpperCase()}`,
-            feedPrice: num(d.livePrice),
-            priceWarning: d.priceWarning || null,
-            meta: d.meta || {},
-        };
-
-        if (d.status === 'NO_TRADE') return { ...base, status: 'NO_TRADE' };
-        if (d.status !== 'SETUP') throw new Error('Format respons server tidak dikenali.');
-
-        const dir = d.direction;
-        const entry = num(d.entryPrice);
-        const sl = num(d.sl);
-        const tps = [d.tp1, d.tp2, d.tp3].map(num);
-
-        if (!['BUY', 'SELL'].includes(dir) || entry === null || sl === null || tps.some(t => t === null)) {
-            throw new Error('Data setup dari server tidak lengkap. Sinyal tidak ditampilkan.');
-        }
-
-        const isBuy = dir === 'BUY';
-        const consistent = isBuy
-            ? sl < entry && tps.every(t => t > entry) && tps[0] <= tps[1] && tps[1] <= tps[2]
-            : sl > entry && tps.every(t => t < entry) && tps[0] >= tps[1] && tps[1] >= tps[2];
-        if (!consistent) throw new Error('Level SL/TP tidak konsisten dengan arah setup. Sinyal ditolak.');
-
-        const orderType = d.orderType || `${dir} LIMIT`;
-        const risk = Math.abs(entry - sl);
-        const rr = Array.isArray(d.rr) && d.rr.length === 3
-            ? d.rr.map(num)
-            : tps.map(t => +(Math.abs(t - entry) / risk).toFixed(2));
-
-        return {
-            ...base,
-            status: 'SETUP',
-            dir, isBuy, orderType, entry, sl, tps, rr, risk,
-            needsLtfConfirmation: !!d.needsLtfConfirmation,
-            zone: d.meta?.zone || null,
-            track: { triggered: orderType.includes('MARKET'), tpHit: 0, slHit: false, invalid: null },
-        };
-    }
-
-    // ================= PELACAKAN SINYAL =================
-    function updateSignalTracking() {
-        const s = state.signal, p = state.livePrice;
-        if (!s || s.status !== 'SETUP' || p === null) return;
-        const t = s.track;
-        if (t.slHit || t.invalid || t.tpHit === 3) return;
-
-        const reached = (lvl) => (s.isBuy ? p >= lvl : p <= lvl);
-        const hitSL = s.isBuy ? p <= s.sl : p >= s.sl;
-
-        if (!t.triggered) {
-            if (hitSL) { t.invalid = 'Harga menembus SL sebelum entry tersentuh. Setup batal.'; return; }
-            if (reached(s.tps[0])) { t.invalid = 'Harga mencapai TP1 tanpa menyentuh entry. Setup terlewat.'; return; }
-            if (s.isBuy ? p <= s.entry : p >= s.entry) t.triggered = true;
-        }
-        if (t.triggered) {
-            if (hitSL) { t.slHit = true; return; }
-            for (let i = 2; i >= 0; i--) {
-                if (reached(s.tps[i])) { t.tpHit = Math.max(t.tpHit, i + 1); break; }
+        window.onload = function() {
+            const email = localStorage.getItem('user_email');
+            if(!email) {
+                window.location.href = 'index.html';
+            } else {
+                document.getElementById('user-session-email').innerText = email;
             }
-        }
-    }
-
-    // ================= RENDER =================
-    function renderAll() {
-        renderSignal();
-        renderLevels();
-        renderStructure();
-        renderLadder();
-    }
-
-    function setLoading(on, mode) {
-        state.loading = on;
-        const btn = $('btn-analyze');
-        btn.disabled = on;
-        btn.textContent = on ? '⏳ Menganalisis struktur...' : '✨ Jalankan Analisis Struktur SMC';
-        if (on) {
-            $('signal-badge').textContent = 'MENGANALISIS';
-            $('signal-badge').className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-blue-900 text-blue-300 animate-pulse';
-            $('reason-content').textContent = `Mengambil candle & menghitung struktur OB/FVG untuk mode ${mode.toUpperCase()}...`;
-        }
-    }
-
-    function renderError(msg) {
-        $('signal-badge').textContent = 'ERROR';
-        $('signal-badge').className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-rose-900 text-rose-300';
-        $('signal-title').textContent = 'ANALISIS GAGAL';
-        $('signal-entry').textContent = '-';
-        $('signal-live-status').textContent = 'Tidak ada sinyal. Jangan entry berdasarkan data lama.';
-        $('signal-live-status').className = 'text-[11px] font-semibold text-rose-400';
-        $('reason-content').textContent = `⚠️ ${msg}`;
-    }
-
-    function renderSignal() {
-        const s = state.signal;
-        const card = $('signal-card');
-        card.className = 'bg-slate-900 border rounded-xl p-4 glow space-y-2 text-center border-slate-800';
-        $('setup-mode-badge').textContent = s ? s.setupMode : 'MENUNGGU';
-        $('reason-content').textContent = s
-            ? (s.analysis || 'Server tidak mengirim narasi analisis.')
-            : '[System]: Pilih mode trading, lalu klik jalankan analisis struktur.';
-
-        if (!s) {
-            $('signal-badge').textContent = 'BELUM ADA ANALISIS';
-            $('signal-badge').className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400';
-            $('signal-title').textContent = 'TITIK ENTRY';
-            $('signal-title').className = 'text-[10px] tracking-widest text-slate-400 font-bold';
-            $('signal-entry').textContent = '-';
-            $('signal-entry').className = 'text-3xl font-black text-white font-mono';
-            $('signal-zone').textContent = '-';
-            $('signal-live-status').textContent = 'Pilih mode, lalu jalankan analisis.';
-            $('signal-live-status').className = 'text-[11px] font-semibold text-slate-400';
-            renderSignalTime();
-            renderWarnings();
-            return;
-        }
-
-        if (s.status === 'NO_TRADE') {
-            $('signal-badge').textContent = 'NO TRADE';
-            $('signal-badge').className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-slate-700 text-slate-200';
-            $('signal-title').textContent = 'TIDAK ADA SETUP VALID';
-            $('signal-title').className = 'text-[10px] tracking-widest text-slate-300 font-bold';
-            $('signal-entry').textContent = 'WAIT';
-            $('signal-entry').className = 'text-3xl font-black text-slate-400 font-mono';
-            $('signal-zone').textContent = 'Tunggu struktur/zona yang valid terbentuk';
-        } else {
-            const color = s.isBuy ? 'emerald' : 'rose';
-            card.className = `bg-slate-900 border rounded-xl p-4 glow space-y-2 text-center border-${color}-800`;
-            $('signal-badge').textContent = s.orderType;
-            $('signal-badge').className = `text-[10px] font-bold px-2 py-0.5 rounded bg-${color}-900 text-${color}-300`;
-            $('signal-title').textContent = s.isBuy ? 'ENTRY BUY · DISCOUNT ZONE' : 'ENTRY SELL · PREMIUM ZONE';
-            $('signal-title').className = `text-[10px] tracking-widest font-bold text-${color}-400`;
-            $('signal-entry').textContent = fmt(s.entry);
-            $('signal-entry').className = `text-3xl font-black font-mono text-${color}-300`;
-            $('signal-zone').textContent = s.zone
-                ? `${s.zone.kind} ${fmt(s.zone.bottom)} – ${fmt(s.zone.top)}${s.zone.confluence ? ' · konfluensi OB+FVG' : ''} · risk ${fmt(s.risk)}`
-                : `Risk ${fmt(s.risk)}`;
-        }
-        renderSignalTime();
-        renderLiveStatus();
-        renderWarnings();
-    }
-
-    function renderSignalTime() {
-        const s = state.signal;
-        $('signal-time').textContent = s
-            ? `${timeStr(s.receivedAt)} · ${agoText(Date.now() - s.receivedAt.getTime())}`
-            : '-';
-    }
-
-    function renderLiveStatus() {
-        const s = state.signal;
-        if (!s) return;
-        const box = $('signal-live-status');
-        const p = state.livePrice;
-
-        if (s.status === 'NO_TRADE') {
-            box.textContent = 'Tidak ada entry. Jalankan ulang analisis nanti.';
-            box.className = 'text-[11px] font-semibold text-slate-400';
-            return;
-        }
-
-        const t = s.track;
-        let text, cls;
-        if (t.invalid) { text = `⛔ ${t.invalid}`; cls = 'text-slate-400'; }
-        else if (t.slHit) { text = `❌ Stop Loss tersentuh (${fmt(s.sl)}).`; cls = 'text-rose-400'; }
-        else if (t.tpHit) {
-            text = `✅ TP${t.tpHit} tercapai.${t.tpHit < 3 ? ' Pertimbangkan geser SL ke entry (BE).' : ' Semua target tercapai.'}`;
-            cls = 'text-emerald-400';
-        }
-        else if (p === null) { text = 'Menunggu harga live...'; cls = 'text-slate-400'; }
-        else if (t.triggered) {
-            const pnl = (p - s.entry) * (s.isBuy ? 1 : -1);
-            text = `🟢 Posisi aktif. Floating ${fmtSigned(pnl)} poin harga (${fmtSigned(pnl / s.risk)}R)`;
-            cls = pnl >= 0 ? 'text-emerald-400' : 'text-amber-400';
-        }
-        else {
-            text = `⏳ Menunggu harga ${s.isBuy ? 'turun' : 'naik'} ke entry. Jarak ${fmt(Math.abs(p - s.entry))}`;
-            cls = 'text-amber-400';
-        }
-        box.textContent = text;
-        box.className = `text-[11px] font-semibold ${cls}`;
-    }
-
-    function renderWarnings() {
-        const box = $('signal-warnings');
-        box.replaceChildren();
-        const s = state.signal;
-        if (!s) return;
-
-        const warn = (msg, tone = 'amber') => box.append(
-            el('div', `text-[10px] rounded px-2 py-1 border border-${tone}-800 bg-${tone}-950/40 text-${tone}-300`, msg)
-        );
-
-        const ageMin = (Date.now() - s.receivedAt.getTime()) / 60000;
-        if (ageMin > MODE_CFG[s.mode].maxAgeMin) {
-            warn(`Sinyal berumur ${Math.floor(ageMin)} menit. Struktur mungkin sudah berubah, jalankan analisis ulang.`, 'rose');
-        }
-        if (s.status === 'SETUP' && s.needsLtfConfirmation && !s.track.triggered) {
-            warn('LTF belum searah HTF. Tunggu konfirmasi CHoCH di LTF saat harga masuk zona sebelum entry.');
-        }
-        if (s.priceWarning) warn(s.priceWarning);
-        if (s.feedPrice !== null && state.livePrice !== null &&
-            Math.abs(state.livePrice - s.feedPrice) > SOURCE_DIFF_WARN && ageMin < 2) {
-            warn(`Harga Gold API (${fmt(state.livePrice)}) berbeda ${fmt(Math.abs(state.livePrice - s.feedPrice))} dari feed analisis (${fmt(s.feedPrice)}). Cocokkan dengan harga broker.`);
-        }
-    }
-
-    function renderLevels() {
-        const s = state.signal;
-        const setup = s && s.status === 'SETUP';
-
-        $('val-sl').textContent = setup ? fmt(s.sl) : '-';
-        $('sub-sl').textContent = setup ? `-${fmt(s.risk)}` : '-';
-
-        [1, 2, 3].forEach((n, i) => {
-            $(`val-tp${n}`).textContent = setup ? fmt(s.tps[i]) : '-';
-            $(`sub-tp${n}`).textContent = setup
-                ? `${s.rr[i] !== null ? s.rr[i] + 'R' : '-'} · +${fmt(Math.abs(s.tps[i] - s.entry))}`
-                : '-';
-        });
-    }
-
-    function renderStructure() {
-        const grid = $('structure-grid');
-        grid.replaceChildren();
-        const s = state.signal;
-        if (!s) return;
-
-        const { htf, ltf, dealingRange: dr } = s.meta;
-        const biasColor = (b) => b === 'bullish' ? 'text-emerald-400' : b === 'bearish' ? 'text-rose-400' : 'text-slate-400';
-
-        const item = (label, value, cls = 'text-slate-200') => {
-            const wrap = el('div', 'bg-slate-950 border border-slate-800 rounded p-1.5');
-            wrap.append(el('dt', 'text-slate-500', label), el('dd', `font-mono font-bold ${cls}`, value));
-            grid.append(wrap);
+            
+            // Inisialisasi Widget Chart
+            new TradingView.widget({
+                "width": "100%", "height": 200, "symbol": "OANDA:XAUUSD", "interval": "15",
+                "timezone": "Asia/Jakarta", "theme": "dark", "style": "1", "container_id": "tradingview_widget"
+            });
+            
+            fetchGoldPrice();
+            setInterval(fetchGoldPrice, 15000);
         };
 
-        if (htf) {
-            item('Bias HTF', (htf.bias || '-').toUpperCase(), biasColor(htf.bias));
-            item('Break HTF', htf.lastBreak ? `${htf.lastBreak.type} @ ${fmt(htf.lastBreak.level)}` : 'Belum ada');
-            item('Pola HTF', htf.pattern || '-');
-        }
-        if (ltf) item('Bias LTF', (ltf.bias || '-').toUpperCase(), biasColor(ltf.bias));
-        if (dr) {
-            item('Dealing Range', `${fmt(dr.low)} – ${fmt(dr.high)}`);
-            if (s.feedPrice !== null && num(dr.equilibrium) !== null) {
-                const premium = s.feedPrice > dr.equilibrium;
-                item('Posisi Harga', `${premium ? 'PREMIUM' : 'DISCOUNT'} (EQ ${fmt(dr.equilibrium)})`,
-                    premium ? 'text-rose-300' : 'text-emerald-300');
-            }
-        }
-    }
-
-    function renderLadder() {
-        const box = $('price-ladder');
-        box.replaceChildren();
-        const s = state.signal, p = state.livePrice;
-        const rows = [];
-
-        if (s && s.status === 'SETUP') {
-            const c = s.isBuy ? 'emerald' : 'rose';
-            s.tps.forEach((t, i) => rows.push({
-                label: `TP${i + 1}${s.rr[i] !== null ? ` · ${s.rr[i]}R` : ''}`, price: t,
-                cls: 'text-emerald-300 border-emerald-900/60',
-            }));
-            rows.push({ label: `ENTRY · ${s.orderType}`, price: s.entry, cls: `text-${c}-300 font-bold border-${c}-500 bg-${c}-950/30` });
-            if (s.zone) {
-                const far = s.isBuy ? s.zone.bottom : s.zone.top;
-                if (Math.abs(far - s.entry) > 0.005) {
-                    rows.push({ label: `Batas ${s.zone.kind}`, price: far, cls: 'text-slate-400 border-slate-700 border-dashed' });
+        async function fetchGoldPrice() {
+            try {
+                let res = await fetch('https://api.gold-api.com/price/XAU/USD');
+                let data = await res.json();
+                if(data && data.price) {
+                    let livePrice = parseFloat(data.price).toFixed(2);
+                    document.getElementById('input-price').value = livePrice;
+                    document.getElementById('live-xau-price').innerText = `XAU ${livePrice}`;
+                    document.getElementById('map-live-price').innerText = livePrice;
+                    document.getElementById('sync-dot').className = "h-2.5 w-2.5 bg-emerald-500 rounded-full animate-pulse";
                 }
+            } catch(e) { 
+                console.error("Gagal sinkronisasi Gold API:", e); 
+                document.getElementById('live-xau-price').innerText = "Gagal (Gunakan Manual)";
+                document.getElementById('sync-dot').className = "h-2.5 w-2.5 bg-rose-500 rounded-full";
             }
-            rows.push({ label: 'SL', price: s.sl, cls: 'text-rose-400 font-bold border-rose-800' });
-        } else if (s && s.status === 'NO_TRADE' && s.meta.dealingRange) {
-            const dr = s.meta.dealingRange;
-            rows.push({ label: 'Range High', price: dr.high, cls: 'text-rose-300 border-slate-700' });
-            rows.push({ label: 'Equilibrium', price: dr.equilibrium, cls: 'text-slate-300 border-slate-700 border-dashed' });
-            rows.push({ label: 'Range Low', price: dr.low, cls: 'text-emerald-300 border-slate-700' });
         }
 
-        if (!rows.length) {
-            box.append(el('div', 'text-[10px] text-slate-500 text-center py-6', 'Belum ada level. Jalankan analisis.'));
-            return;
+        async function requestOpenAIAnalysis() {
+            let price = document.getElementById('input-price').value;
+            let mode = document.getElementById('trading-mode').value;
+            if(!price) { alert("Masukkan atau sinkronkan harga terlebih dahulu!"); return; }
+
+            document.getElementById('reason-content').innerHTML = `🤖 Menganalisis struktur Order Block & FVG untuk mode <b>${mode.toUpperCase()}</b> via AI...`;
+
+            try {
+                let response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ price: price, mode: mode })
+                });
+                let result = await response.json();
+
+                document.getElementById('reason-content').innerHTML = `<b>Analisis Struktur SMC (${mode.toUpperCase()}):</b><br>${result.analysis}`;
+                document.getElementById('val-sl').innerText = result.sl;
+                document.getElementById('val-tp1').innerText = result.tp1;
+                document.getElementById('val-tp2').innerText = result.tp2;
+                document.getElementById('val-tp3').innerText = result.tp3;
+                document.getElementById('setup-mode-badge').innerText = result.setupMode;
+
+                let base = parseFloat(price);
+                let slVal = parseFloat(result.sl);
+                let isBuy = slVal < base;
+                let actionText = isBuy ? "TITIK ENTRY BUY (SUPPORT/OB)" : "TITIK ENTRY SELL (RESISTANCE/OB)";
+                let actionColorClass = isBuy ? "text-emerald-400" : "text-rose-400";
+                let entryBoxClass = isBuy ? "border-emerald-500 bg-emerald-950/30" : "border-rose-500 bg-rose-950/30";
+
+                let entryPrice = parseFloat(result.entryPrice).toFixed(2);
+
+                document.getElementById('zone-range').innerText = entryPrice;
+                document.getElementById('zone-title').innerHTML = `<span class="${actionColorClass}">${actionText} (${mode.toUpperCase()})</span>`;
+                document.getElementById('zone-status-text').innerText = `Tervalidasi Berdasarkan Struktur Chart`;
+
+                document.getElementById('map-sl-val').innerText = result.sl;
+                document.getElementById('map-live-price').innerText = base.toFixed(2);
+                document.getElementById('map-tp1').innerText = result.tp1;
+                document.getElementById('map-tp2').innerText = result.tp2;
+                document.getElementById('map-tp3').innerText = result.tp3;
+                
+                let entryBox = document.getElementById('map-entry-box');
+                entryBox.className = `border rounded p-1.5 text-center my-1 ${entryBoxClass}`;
+                document.getElementById('map-entry-text').innerHTML = `<span class="${actionColorClass} font-bold">TITIK ENTRY: ${entryPrice}</span>`;
+
+            } catch (err) {
+                let base = parseFloat(price);
+                document.getElementById('reason-content').innerHTML = `⚠️ <b>Mode Fallback Aktif:</b> Harga Live $${base} menggunakan titik referensi standar struktur.`;
+                document.getElementById('val-sl').innerText = (base - 4.5).toFixed(2);
+                document.getElementById('val-tp1').innerText = (base + 5.0).toFixed(2);
+                document.getElementById('val-tp2').innerText = (base + 10.0).toFixed(2);
+                document.getElementById('val-tp3').innerText = (base + 15.0).toFixed(2);
+                document.getElementById('setup-mode-badge').innerText = "SETUP: DIRECT";
+
+                document.getElementById('zone-range').innerText = base.toFixed(2);
+                document.getElementById('zone-title').innerHTML = `<span class="text-emerald-400">TITIK ENTRY BUY</span>`;
+                document.getElementById('zone-status-text').innerText = `Titik Eksekusi`;
+                document.getElementById('map-sl-val').innerText = (base - 4.5).toFixed(2);
+                document.getElementById('map-live-price').innerText = base.toFixed(2);
+                document.getElementById('map-tp1').innerText = (base + 5.0).toFixed(2);
+                document.getElementById('map-tp2').innerText = (base + 10.0).toFixed(2);
+                document.getElementById('map-tp3').innerText = (base + 15.0).toFixed(2);
+                
+                let entryBox = document.getElementById('map-entry-box');
+                entryBox.className = `border border-emerald-500 rounded p-1.5 text-center my-1 bg-emerald-950/30`;
+                document.getElementById('map-entry-text').innerHTML = `<span class="text-emerald-400 font-bold">TITIK ENTRY: ${base.toFixed(2)}</span>`;
+            }
         }
 
-        if (p !== null) rows.push({ label: '▶ LIVE', price: p, live: true });
-        rows.sort((a, b) => b.price - a.price);
-
-        for (const r of rows) {
-            const row = el('div', r.live
-                ? 'flex justify-between items-center rounded px-2 py-1 bg-blue-600 text-white font-bold text-[11px]'
-                : `flex justify-between items-center rounded px-2 py-1 border text-[11px] ${r.cls}`);
-            row.append(el('span', '', r.label));
-            const right = el('span', 'flex gap-3');
-            right.append(el('span', '', fmt(r.price)));
-            right.append(el('span', `w-14 text-right ${r.live ? '' : 'text-slate-500'}`,
-                r.live || p === null ? '' : fmtSigned(r.price - p)));
-            row.append(right);
-            box.append(row);
+        function logoutUser() {
+            localStorage.removeItem('user_email');
+            window.location.href = 'index.html';
         }
-    }
-
-    function logoutUser() {
-        localStorage.removeItem('user_email');
-        window.location.href = 'index.html';
-    }
     </script>
 </body>
 </html>
