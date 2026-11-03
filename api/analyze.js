@@ -10,24 +10,27 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'OpenAI API Key belum diset di Vercel.' });
     }
 
-    // Pemetaan Time Frame SMC berdasarkan mode trading pilihan user
     let tfGuide = "M15 + H1 (Intraday)";
     if (mode === 'scalping') tfGuide = "M1 + M5 (Scalping)";
     if (mode === 'swing') tfGuide = "H1 + H4 (Swing)";
 
     try {
-        const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Expert tingkat lanjut untuk XAU/USD. 
-        Mode trading yang digunakan adalah ${mode || 'intraday'} dengan kombinasi Time Frame ${tfGuide}.
+        const prompt = `Bertindaklah sebagai Smart Money Concept (SMC) Institutional Trader profesional untuk XAU/USD. 
+        Mode trading: ${mode || 'intraday'} dengan kombinasi Time Frame ${tfGuide}.
         Harga live saat ini adalah ${price}.
-        
-        Analisis struktur market berdasarkan kombinasi time frame tersebut (misal: konfirmasi tren & key level dari TF tinggi, lalu eksekusi titik OB/FVG dari TF rendah). Tentukan SATU titik harga entry presisi (entryPrice), serta Stop Loss (sl) dan Take Profit (tp1, tp2, tp3):
-        - Jika setup BUY: entryPrice adalah harga batas bawah support / Order Block bawah.
-        - Jika setup SELL: entryPrice adalah harga batas atas resistance / Order Block atas.
+
+        ATURAN UTAMA ANALISIS STRUKTUR:
+        1. JANGAN ASAL MENEMBAK ANGKA. Analisis struktur market terkini (apakah ada mitigasi Order Block, area Liquidity Sweep, atau FVG yang belum tertutup).
+        2. Tentukan zona struktur nyata terdekat dari harga ${price}.
+        3. Berikan SATU titik harga entry yang presisi (entryPrice) berdasarkan batas struktur tersebut:
+           - Jika setup BUY (Bullish Order Block / Diskon Zone): entryPrice wajib di bawah harga live pada area support/OB bawah yang valid.
+           - Jika setup SELL (Bearish Order Block / Premium Zone): entryPrice wajib di atas harga live pada area resistance/OB atas yang valid.
+        4. Tentukan Stop Loss (sl) di balik swing high/low struktur, serta Take Profit (tp1, tp2, tp3) yang logis.
 
         Berikan hasil dalam format JSON murni tanpa teks markdown dengan keys persis berikut:
         {
-          "analysis": "alasan analisis SMC mendalam berdasarkan kombinasi time frame ${tfGuide}...",
-          "entryPrice": "angka desimal titik entry tunggal (contoh: 3968.50)",
+          "analysis": "Penjelasan detail alasan struktur SMC (sebutkan di mana letak Order Block / FVG / mitigasi strukturnya)...",
+          "entryPrice": "angka desimal titik entry presisi berbasis struktur",
           "sl": "angka desimal SL terproteksi",
           "tp1": "angka desimal TP1",
           "tp2": "angka desimal TP2",
@@ -44,7 +47,7 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 model: "gpt-4o-mini",
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0.4
+                temperature: 0.3 // Diturunkan agar AI lebih konsisten dan disiplin pada struktur logika harga
             })
         });
 
