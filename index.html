@@ -2,77 +2,320 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - AI SMC XAU/USD Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alu Signal Z Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #0b0f19; color: #e2e8f0; font-family: ui-sans-serif, system-ui, sans-serif; }
-        .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.08); }
+        body { font-family: 'Inter', sans-serif; background-color: #000000; color: #ffffff; -webkit-tap-highlight-color: transparent; }
+        .card { background-color: #121212; border-radius: 16px; }
+        .nav-item.active { color: #ffffff; }
+        .nav-item.active i { color: #0066FF; }
+        .tab-active { color: #ffffff; border-bottom: 2px solid #0066FF; }
+        .text-up { color: #00C853; }
+        .text-down { color: #FF3B30; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .chart-grid { background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 20px 20px; }
+        .fvg { background: rgba(59, 130, 246, 0.2); border: 1px dashed #3b82f6; }
+        .ob { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-sm glow space-y-4">
-        <div class="text-center space-y-1">
-            <h1 class="text-sm font-bold text-white tracking-wider">AI SMC XAU/USD PRO</h1>
-            <p class="text-[10px] text-slate-400">Masukkan email terdaftar untuk akses</p>
-        </div>
+<body class="h-screen flex flex-col overflow-hidden">
 
-        <div class="space-y-3">
-            <div>
-                <label class="block text-[10px] text-slate-400 mb-1">Alamat Email</label>
-                <input type="email" id="user-email" placeholder="client@email.com" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-xs text-amber-400 font-mono focus:outline-none focus:border-amber-500">
-            </div>
-            
-            <button onclick="handleLogin()" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded text-xs transition cursor-pointer shadow-lg">Masuk Dashboard</button>
-            
-            <div id="login-error" class="text-[10px] text-rose-400 text-center font-semibold"></div>
-            
-            <div class="text-[9px] text-slate-500 text-center leading-relaxed pt-2 border-t border-slate-800">
-                Belum terdaftar? Silakan hubungi Admin untuk mendapatkan akses Trial atau Lifetime.
-            </div>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-black flex items-center justify-center p-6">
+        <div class="card p-6 w-full max-w-sm border border-neutral-800 text-center">
+            <h1 class="text-2xl font-bold mb-1">Alu Signal Z <span class="text-blue-500">Pro</span></h1>
+            <p class="text-neutral-500 text-sm mb-6">SMC x ICT x Alchemist</p>
+            <input type="password" id="login-pass" placeholder="Enter Access Code" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 mb-4 text-white focus:outline-none focus:border-blue-500">
+            <button onclick="handleLogin()" class="w-full bg-[#0066FF] text-white font-semibold py-3 rounded-xl">Login</button>
+            <p class="text-xs text-neutral-600 mt-4">Hint: admin123 / user123</p>
         </div>
     </div>
 
+    <!-- MAIN APP -->
+    <div id="app" class="hidden flex-col h-full">
+        
+        <!-- HEADER -->
+        <header class="px-4 pt-4 pb-2 flex justify-between items-center bg-black sticky top-0 z-30">
+            <div class="flex bg-neutral-900 rounded-full p-1">
+                <button class="px-4 py-1 rounded-full bg-neutral-800 text-white text-sm font-semibold">Alu Signal</button>
+                <button class="px-4 py-1 rounded-full text-neutral-500 text-sm font-semibold">Pro</button>
+            </div>
+            <div class="flex gap-4">
+                <button class="relative text-white"><i class="fa-regular fa-bell text-xl"></i><span class="absolute -top-1 -right-1 bg-red-500 w-2 h-2 rounded-full"></span></button>
+                <button onclick="switchView('admin')" class="text-white text-sm font-bold border border-neutral-700 px-2 py-1 rounded-lg">ID/EN</button>
+            </div>
+        </header>
+
+        <!-- CONTENT -->
+        <main class="flex-1 overflow-y-auto pb-20 px-4 space-y-6" id="main-content">
+            
+            <!-- VIEW: HOME -->
+            <div id="view-home" class="space-y-6">
+                <!-- News -->
+                <div>
+                    <h2 class="text-lg font-bold mb-3">Market News</h2>
+                    <div class="space-y-3">
+                        <div class="flex gap-3">
+                            <div class="w-20 h-20 rounded-xl bg-neutral-800 flex-shrink-0 flex items-center justify-center text-2xl">📰</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm leading-tight mb-1">Fed Signals Potential Rate Cut in September</h3>
+                                <p class="text-xs text-neutral-500">ForexLive • 10 mins ago</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="w-20 h-20 rounded-xl bg-neutral-800 flex-shrink-0 flex items-center justify-center text-2xl">🥇</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm leading-tight mb-1">Gold Hits All-Time High Amid Geopolitical Tensions</h3>
+                                <p class="text-xs text-neutral-500">Investing.com • 1 hour ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Market Stream -->
+                <div>
+                    <h2 class="text-lg font-bold mb-3">Live Market Stream (TickTrader)</h2>
+                    <div class="card border border-neutral-800 overflow-hidden">
+                        <div id="market-list" class="divide-y divide-neutral-900">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: MANUAL SIGNAL -->
+            <div id="view-manual" class="hidden space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs text-neutral-500 mb-1 block">Pair</label>
+                        <select class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-sm"><option>XAUUSD</option><option>BTCUSD</option></select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-neutral-500 mb-1 block">Style</label>
+                        <select class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-sm"><option>Scalping</option><option>Intraday</option><option>Swing</option></select>
+                    </div>
+                </div>
+
+                <!-- Signal Card -->
+                <div class="card p-4 border border-neutral-800 relative">
+                    <div class="absolute top-3 right-3 bg-red-500/20 text-red-500 text-xs px-2 py-1 rounded">HIGH RISK</div>
+                    <div class="flex justify-center mb-4"><span class="bg-red-500 text-white font-bold px-6 py-2 rounded-full">SELL</span></div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div class="bg-neutral-900 p-3 rounded-xl text-center"><div class="text-xs text-neutral-500">Entry</div><div class="font-bold">2345.50</div></div>
+                        <div class="bg-neutral-900 p-3 rounded-xl text-center"><div class="text-xs text-neutral-500">Stop Loss</div><div class="font-bold text-red-500">2350.00</div></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-green-500/10 border border-green-500/30 p-2 rounded-xl text-center"><div class="text-xs text-green-500">TP1</div><div class="font-bold text-green-500 text-sm">2340</div></div>
+                        <div class="bg-green-500/10 border border-green-500/30 p-2 rounded-xl text-center"><div class="text-xs text-green-500">TP2</div><div class="font-bold text-green-500 text-sm">2335</div></div>
+                        <div class="bg-green-500/10 border border-green-500/30 p-2 rounded-xl text-center"><div class="text-xs text-green-500">TP3</div><div class="font-bold text-green-500 text-sm">2325</div></div>
+                    </div>
+                    <div class="mt-4 text-xs text-neutral-400 bg-neutral-900 p-3 rounded-lg">
+                        <strong class="text-yellow-500">Reason:</strong> Bearish MSS di H1, reject di Major Supply Zone. M15 menunjukkan FVG fill.
+                    </div>
+                </div>
+
+                <!-- SMC Chart Visual -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-semibold text-sm">Live Chart (SMC Visual)</h3>
+                        <div class="flex gap-1 text-xs">
+                            <button class="px-2 py-1 bg-neutral-800 rounded">M15</button>
+                            <button class="px-2 py-1 bg-[#0066FF] text-white rounded font-bold">H1</button>
+                            <button class="px-2 py-1 bg-neutral-800 rounded">H4</button>
+                        </div>
+                    </div>
+                    <div class="card h-64 chart-grid relative overflow-hidden border border-neutral-800">
+                        <!-- Mock Candles -->
+                        <div class="absolute bottom-10 left-10 w-2 h-12 bg-green-500"></div>
+                        <div class="absolute bottom-20 left-16 w-2 h-8 bg-green-500"></div>
+                        <div class="absolute bottom-24 left-22 w-2 h-16 bg-red-500"></div>
+                        <div class="absolute bottom-10 left-28 w-2 h-20 bg-red-500"></div>
+                        
+                        <!-- SMC Elements -->
+                        <div class="absolute bottom-24 left-22 w-16 h-8 fvg flex items-center justify-center text-[10px] text-blue-400">FVG</div>
+                        <div class="absolute bottom-0 left-10 w-20 h-6 ob flex items-center justify-center text-[10px] text-red-400">Order Block</div>
+                        
+                        <!-- Signal Lines -->
+                        <div class="absolute bottom-24 w-full border-t border-dashed border-yellow-400 flex items-center"><span class="bg-yellow-400 text-black text-[10px] px-1 rounded ml-1">Entry</span></div>
+                        <div class="absolute bottom-32 w-full border-t border-dashed border-red-500 flex items-center"><span class="bg-red-500 text-white text-[10px] px-1 rounded ml-1">SL</span></div>
+                        <div class="absolute bottom-10 w-full border-t border-dashed border-green-500 flex items-center"><span class="bg-green-500 text-white text-[10px] px-1 rounded ml-1">TP1</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: VISION CHART -->
+            <div id="view-vision" class="hidden space-y-4">
+                <div class="card p-8 border-2 border-dashed border-neutral-800 text-center rounded-2xl">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-neutral-600 mb-2"></i>
+                    <p class="font-semibold text-sm">Upload Chart Image</p>
+                    <p class="text-xs text-neutral-500 mt-1">Max 3 images (JPG, PNG)</p>
+                </div>
+
+                <!-- Result & Redrawing -->
+                <div class="card p-4 border border-neutral-800">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-red-500 text-white font-bold px-4 py-1 rounded-full text-sm">SELL</span>
+                        <span class="text-yellow-500 text-xs">Confidence: Medium</span>
+                    </div>
+                    
+                    <!-- Redrawn Chart -->
+                    <div class="relative w-full h-48 bg-neutral-900 rounded-lg overflow-hidden mb-4">
+                        <img src="https://images.unsplash.com/photo-1611974765270-ca1258634369?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-40" alt="Chart">
+                        <svg class="absolute inset-0 w-full h-full">
+                            <line x1="0" y1="40%" x2="100%" y2="40%" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4"/>
+                            <text x="5" y="38%" fill="#fbbf24" font-size="10" font-weight="bold">Entry: 2345.50</text>
+                            
+                            <line x1="0" y1="20%" x2="100%" y2="20%" stroke="#ef4444" stroke-width="2" stroke-dasharray="4"/>
+                            <text x="5" y="18%" fill="#ef4444" font-size="10" font-weight="bold">SL: 2350.00</text>
+                            
+                            <line x1="0" y1="70%" x2="100%" y2="70%" stroke="#10b981" stroke-width="2" stroke-dasharray="4"/>
+                            <text x="5" y="68%" fill="#10b981" font-size="10" font-weight="bold">TP1: 2340.00</text>
+                        </svg>
+                    </div>
+                    <p class="text-xs text-neutral-400">AI Vision mendeteksi Bearish Engulfing di area Supply H4. Garis Entry/SL/TP di-redraw otomatis.</p>
+                </div>
+            </div>
+
+            <!-- VIEW: RECAP PNL -->
+            <div id="view-recap" class="hidden space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="card p-4 border border-neutral-800 text-center"><div class="text-xs text-neutral-500">Total PNL</div><div class="text-2xl font-bold text-up">+$1,240</div></div>
+                    <div class="card p-4 border border-neutral-800 text-center"><div class="text-xs text-neutral-500">Win Rate</div><div class="text-2xl font-bold text-yellow-500">68%</div></div>
+                </div>
+                <div class="card p-4 border border-neutral-800">
+                    <h3 class="font-semibold mb-3 text-sm">Kalender PNL (November 2026)</h3>
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs text-neutral-600 mb-2"><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div></div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                        <div class="p-2 bg-green-500/20 text-green-500 rounded">1</div><div class="p-2 bg-red-500/20 text-red-500 rounded">2</div><div class="p-2 bg-green-500/20 text-green-500 rounded">3</div><div class="p-2 text-neutral-700">4</div><div class="p-2 text-neutral-700">5</div><div class="p-2 bg-green-500/20 text-green-500 rounded">6</div><div class="p-2 bg-green-500/20 text-green-500 rounded">7</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: ADMIN -->
+            <div id="view-admin" class="hidden space-y-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xl font-bold text-red-500">Admin Dashboard</h2>
+                    <button onclick="switchView('home')" class="text-xs bg-neutral-800 px-3 py-1 rounded-lg">Exit</button>
+                </div>
+                
+                <!-- Announcements -->
+                <div class="card p-4 border border-neutral-800">
+                    <h3 class="font-semibold mb-2 text-sm">Papan Pengumuman</h3>
+                    <textarea class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2 text-sm h-20 mb-2 text-white" placeholder="Tulis informasi untuk user..."></textarea>
+                    <button class="w-full bg-[#0066FF] text-white py-2 rounded-lg text-sm font-semibold">Kirim Notifikasi</button>
+                </div>
+
+                <!-- User Management -->
+                <div class="card p-4 border border-neutral-800">
+                    <h3 class="font-semibold mb-3 text-sm">Manajemen User</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center bg-neutral-900 p-3 rounded-lg">
+                            <div><div class="text-sm font-medium">user1@mail.com</div><div class="text-xs text-green-500">Lifetime</div></div>
+                            <button class="text-red-500 text-xs">Ban</button>
+                        </div>
+                        <div class="flex justify-between items-center bg-neutral-900 p-3 rounded-lg">
+                            <div><div class="text-sm font-medium">trial@mail.com</div><div class="text-xs text-yellow-500">Trial (2/3 Sinyal)</div></div>
+                            <button class="text-blue-500 text-xs">Upgrade</button>
+                        </div>
+                        <div class="flex justify-between items-center bg-neutral-900 p-3 rounded-lg">
+                            <div><div class="text-sm font-medium">sub@mail.com</div><div class="text-xs text-blue-500">Monthly (28 hari)</div></div>
+                            <button class="text-red-500 text-xs">Cancel</button>
+                        </div>
+                    </div>
+                    <button class="mt-4 w-full bg-neutral-800 text-white py-2 rounded-lg text-sm font-semibold">+ Tambah User Manual</button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- BOTTOM NAV -->
+        <nav class="fixed bottom-0 w-full bg-black border-t border-neutral-900 flex justify-around py-2 pb-4 z-40">
+            <button onclick="switchView('home')" class="nav-item active flex flex-col items-center gap-1 w-16" data-view="home">
+                <i class="fa-solid fa-house text-xl"></i><span class="text-[10px]">Home</span>
+            </button>
+            <button onclick="switchView('manual')" class="nav-item flex flex-col items-center gap-1 w-16 text-neutral-500" data-view="manual">
+                <i class="fa-solid fa-chart-line text-xl"></i><span class="text-[10px]">Signal</span>
+            </button>
+            <button onclick="switchView('vision')" class="nav-item flex flex-col items-center gap-1 w-16 text-neutral-500" data-view="vision">
+                <i class="fa-solid fa-eye text-xl"></i><span class="text-[10px]">Vision</span>
+            </button>
+            <button onclick="switchView('recap')" class="nav-item flex flex-col items-center gap-1 w-16 text-neutral-500" data-view="recap">
+                <i class="fa-solid fa-wallet text-xl"></i><span class="text-[10px]">Rekap</span>
+            </button>
+            <button onclick="switchView('admin')" class="nav-item flex flex-col items-center gap-1 w-16 text-neutral-500" data-view="admin">
+                <i class="fa-solid fa-shield-halved text-xl"></i><span class="text-[10px]">Admin</span>
+            </button>
+        </nav>
+    </div>
+
     <script>
-        const SUPABASE_URL = 'https://ytmyvxteokyqquzfhhvh.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0bXl2eHRlb2t5cXF1emZoaHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MzA2NjcsImV4cCI6MjEwOTIwNjY2N30.gIOrqhhxzAJI0BiPfJw62wCx6eLNOSiWCSoSt1vgQ1Q';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // --- LOGIN ---
+        function handleLogin() {
+            const pass = document.getElementById('login-pass').value;
+            if(pass === 'admin123' || pass === 'user123') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                document.getElementById('app').classList.add('flex');
+                renderMarket();
+            } else { alert('Kode salah! Coba: admin123 atau user123'); }
+        }
 
-        async function handleLogin() {
-            const email = document.getElementById('user-email').value.trim();
-            const errDiv = document.getElementById('login-error');
-            errDiv.innerText = "";
+        // --- NAVIGATION ---
+        function switchView(viewId) {
+            ['home','manual','vision','recap','admin'].forEach(v => {
+                document.getElementById('view-'+v).classList.add('hidden');
+            });
+            document.getElementById('view-'+viewId).classList.remove('hidden');
+            document.getElementById('main-content').scrollTop = 0;
 
-            if(!email || !email.includes('@')) {
-                errDiv.innerText = 'Masukkan email yang valid!';
-                return;
-            }
-
-            document.getElementById('btn-login').innerText = "Memeriksa Akses...";
-
-            let { data, error } = await supabaseClient
-                .from('users')
-                .select('*')
-                .eq('email', email)
-                .single();
-
-            if (error || !data) {
-                errDiv.innerText = 'Email belum didaftarkan oleh Admin!';
-                document.getElementById('btn-login').innerText = "Masuk Dashboard";
-                return;
-            }
-
-            localStorage.setItem('user_email', data.email);
-            localStorage.setItem('user_role', data.role);
-            localStorage.setItem('user_status', data.status);
-
-            if (data.role === 'admin') {
-                window.location.href = 'admin.html';
-            } else {
-                window.location.href = 'dashboard.html';
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-neutral-500');
+            });
+            const activeBtn = document.querySelector(`.nav-item[data-view="${viewId}"]`);
+            if(activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.classList.remove('text-neutral-500');
             }
         }
+
+        // --- MOCK MARKET STREAM ---
+        const pairs = [
+            { sym: 'XAUUSD', price: 2345.50, change: -1.24 },
+            { sym: 'BTCUSD', price: 67450.00, change: 2.14 },
+            { sym: 'EURUSD', price: 1.0845, change: -0.32 },
+            { sym: 'GBPUSD', price: 1.2650, change: 0.15 },
+            { sym: 'USDJPY', price: 156.40, change: -0.50 },
+        ];
+
+        function renderMarket() {
+            const list = document.getElementById('market-list');
+            list.innerHTML = '';
+            pairs.forEach(p => {
+                const color = p.change >= 0 ? 'text-up' : 'text-down';
+                const arrow = p.change >= 0 ? '▲' : '▼';
+                list.innerHTML += `
+                <div class="flex items-center justify-between p-3 hover:bg-neutral-900">
+                    <div class="font-semibold text-sm">${p.sym}</div>
+                    <div class="font-mono text-sm">${p.price.toFixed(p.sym.includes('JPY')?2:2)}</div>
+                    <div class="text-xs ${color} font-medium">${arrow} ${Math.abs(p.change)}%</div>
+                </div>`;
+            });
+        }
+
+        // Simulate live price
+        setInterval(() => {
+            if(document.getElementById('login-screen').classList.contains('hidden')) {
+                pairs.forEach(p => {
+                    p.price += (Math.random() - 0.5) * (p.sym === 'BTCUSD' ? 50 : 0.5);
+                    p.change += (Math.random() - 0.5) * 0.1;
+                });
+                renderMarket();
+            }
+        }, 2000);
     </script>
 </body>
 </html>
